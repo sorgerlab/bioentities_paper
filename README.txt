@@ -35,6 +35,11 @@ Step 2: Build REACH without Bioentities and Read PMIDs
 - Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_bioentities
 
 Step 3: Subsample the data into two files
+- get_training_test_stmts.py
+  - output: training_pmid_stmts.pkl
+  - output: test_pmid_stmts.pkl
+
+Step 4: stmt_entity_stats
 
 
 
