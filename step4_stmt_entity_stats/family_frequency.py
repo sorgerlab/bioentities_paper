@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     family_cats = ('F', 'C', 'X')
     # Get the first 100 rows
-    num_curated = 100
+    num_curated = 200
     curated = data[0:num_curated]
     # Iterate over rows and calculate rolling ratio due to families/complexes
     totals = np.zeros(num_curated)
