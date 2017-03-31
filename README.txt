@@ -40,7 +40,15 @@ Step 3: Subsample the data into two files
   - output: test_pmid_stmts.pkl
 
 Step 4: stmt_entity_stats
-
-
+- get_stats.py
+  - output: training_top_1000_agents.csv
+  - output: training_top_1000_ungrounded.csv
+ 
+  - Fraction of most frequent agents that include family or complex
+    - Fraction of mentions
+  - Fraction of most frequent ungrounded that include family or complex
+    - Fraction of ungrounded mentions
+  - Table with 3 columns Entity, Frequency, Category (F, C, X, or empty),
+    Curator
 
 
