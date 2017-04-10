@@ -37,7 +37,7 @@ if __name__ == '__main__':
     pf.format_axis(ax)
     ax.set_ylabel('Number of occurrences')
     ax.set_xlabel('Entity index')
-
+    plt.subplots_adjust(left=0.21)
 
     ratio = families / totals
     fig = plt.figure(figsize=(3, 3), dpi=150)
@@ -46,3 +46,5 @@ if __name__ == '__main__':
     pf.format_axis(ax)
     ax.set_xlabel('Entity index')
     ax.set_ylabel('Pct. family/complex occurrences')
+    plt.subplots_adjust(left=0.16)
+

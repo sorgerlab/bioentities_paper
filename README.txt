@@ -33,6 +33,7 @@ Step 2: Build REACH without Bioentities and Read PMIDs
 
 - Build REACH, b4a284, without Bioentities (see email threads)
 - Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_bioentities
+  - output: combined_genes_no_bioentities_stmts.pkl (pmid->stmts file, Python3)
 
 Step 3: Subsample the data into two files
 - get_training_test_stmts.py
@@ -41,10 +42,26 @@ Step 3: Subsample the data into two files
 
 Step 4: stmt_entity_stats
 - get_stats.py
-  - output: training_top_1000_agents.csv
-  - output: training_top_1000_ungrounded.csv
- 
-  - Fraction of most frequent agents that include family or complex
+  - output: training_agents.csv
+  - output: training_ungrounded.csv
+- Open training_agents.csv in Excel to curate
+  - Curate agents. Code:
+    - S: small molecule
+    - P: protein
+    - B: biological process
+    - F: family
+    - C: complex
+    - X: complex of families
+    - U: unknown
+  - Curate JAB and BMG separately, record and reconcile any differences
+  - output: training_agents.xlsx
+- Estimate percentage of entitities that are family, complex, or combined
+  - family_frequency.py
+  - Analyzes training_agents.xlsx, plots percentage
+
+
+  - Fraction of most frequent agents that in
+clude family or complex
     - Fraction of mentions
   - Fraction of most frequent ungrounded that include family or complex
     - Fraction of ungrounded mentions
