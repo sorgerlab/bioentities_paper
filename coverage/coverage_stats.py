@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+from matplotlib_venn import venn3
 
 bepath = '../../../bioentities'
 
@@ -39,6 +40,26 @@ def find_db_mappings(entity, equivalences):
             dbs.append(db)
     return dbs
 
+def plot_venn_diagram(db_mappings, groups):
+    missing = len([entity for entity, db_eq in db_mappings.items()
+                   if not db_eq])
+    group_entries = []
+    for idx, group in enumerate(groups):
+        entries = []
+        for entity, db_eq in db_mappings.items():
+            if set(db_eq) & set(group):
+                entries.append(entity)
+        group_entries.append(entries)
+    subsets = (len(set(group_entries[0]) - set(group_entries[1])),
+               len(set(group_entries[1]) - set(group_entries[0])),
+               missing,
+               len(set(group_entries[0]) & set(group_entries[1])),
+               0,
+               0,
+               0)
+    venn3(subsets=subsets)
+
+
 if __name__ == '__main__':
     # Read all entities in Bioentities
     entities_file = os.path.join(bepath, 'entities.csv')
@@ -47,15 +68,19 @@ if __name__ == '__main__':
     equivalences_file = os.path.join(bepath, 'equivalences.csv')
     equivalences = load_equivalences(equivalences_file)
     # Find equivalence DB types for each term
-    dbs = {entity: find_db_mappings(entity, equivalences)
+    db_mappings = {entity: find_db_mappings(entity, equivalences)
                    for entity in entities}
 
-    missing = sorted([entity for entity, db_eq in dbs.items() if not db_eq])
-    bel_only = sorted([entity for entity, db_eq in dbs.items()
+    missing = sorted([entity for entity, db_eq in db_mappings.items()
+                      if not db_eq])
+    bel_only = sorted([entity for entity, db_eq in db_mappings.items()
                        if db_eq == ['BEL']])
 
     print('Equivalences coverage\n=====================')
     print('Missing: %d (%.0f%%)' % (len(missing),
-                                100.0*len(missing)/len(entities)))
+                                    100.0*len(missing)/len(entities)))
     print('BEL only: %d (%.0f%%)' % (len(bel_only),
-                                 100.0*len(bel_only)/len(entities)))
+                                     100.0*len(bel_only)/len(entities)))
+
+    groups = [['BEL'], ['IP', 'PF', 'RE', 'NXP', 'NCIT', 'GO']]
+    plot_venn_diagram(db_mappings, groups)
