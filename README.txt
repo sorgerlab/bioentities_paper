@@ -26,8 +26,6 @@ Step 1: Get Proteins->Genes->PMIDs
   - output: combined_genes_to_pmids.pkl
   - Make set of unique PMIDs, save
   - output: combined_pids.txt
-  - (separately, make a subset of 2000 papers for pilot reading purposes:
-     combined_pmids_subset.txt)
 
 Step 2: Build REACH without Bioentities and Read PMIDs
 
@@ -35,16 +33,19 @@ Step 2: Build REACH without Bioentities and Read PMIDs
 - Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_bioentities
   - output: combined_genes_no_bioentities_stmts.pkl (pmid->stmts file, Python3)
 
-Step 3: Subsample the data into two files
+Step 3: Shuffle the PMIDs and subsample the data into two files
 - get_training_test_stmts.py
   - output: training_pmid_stmts.pkl
   - output: test_pmid_stmts.pkl
 
 Step 4: stmt_entity_stats
-- get_stats.py
+- get_agents_for_evaluation.py
+  - output: training_agents_sample.csv
   - output: training_agents.csv
   - output: training_ungrounded.csv
-- Open training_agents.csv in Excel to curate
+  - output: training_agent_distribution.pdf
+  - output: training_ungrounded_distribution.pdf
+- Open training_agents_sample_curated.csv in Excel to curate
   - Curate agents. Code:
     - S: small molecule
     - P: protein
@@ -54,7 +55,7 @@ Step 4: stmt_entity_stats
     - X: complex of families
     - U: unknown
   - Curate JAB and BMG separately, record and reconcile any differences
-  - output: training_agents.xlsx
+  - output: training_agents_sample.xlsx
 - Estimate percentage of entitities that are family, complex, or combined
   - family_frequency.py
   - Analyzes training_agents.xlsx, plots percentage
