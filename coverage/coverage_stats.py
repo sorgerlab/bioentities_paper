@@ -1,6 +1,8 @@
 import os
 import sys
 import csv
+from indra.util import plot_formatting as pf
+import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 
 bepath = '../../../bioentities'
@@ -57,8 +59,12 @@ def plot_venn_diagram(db_mappings, groups):
                0,
                0,
                0)
-    venn3(subsets=subsets)
-
+    pf.set_fig_params()
+    plt.figure(figsize=(4, 3))
+    venn3(subsets=subsets, set_labels=('BEL', 'Other', 'Unmapped'))
+    plt.savefig('bioentities_mapping.pdf')
+    ax = plt.gca()
+    pf.format_axis(ax)
 
 if __name__ == '__main__':
     # Read all entities in Bioentities
