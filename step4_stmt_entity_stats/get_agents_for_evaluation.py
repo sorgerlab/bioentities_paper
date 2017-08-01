@@ -17,7 +17,8 @@ if __name__ == '__main__':
         for s in pmid_stmts[pmid]:
             stmts.append(s)
 
-    gm.raw_agent_texts(stmts, 10000, 'raw_agent_texts_before.csv')
+    # Get 10000 randomly selected agents from the full statement list
+    gm.raw_agent_texts(stmts, 10000, 'training_agents_sample.csv')
 
     rrs.report_grounding(stmts, bin_interval=100,
                          plot_prefix='training')
