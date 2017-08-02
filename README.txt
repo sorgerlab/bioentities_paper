@@ -39,14 +39,14 @@ Step 4: stmt_entity_stats
   - output: training_ungrounded_distribution.pdf
 - Open training_agents_sample_curated.csv in Excel to curate
   - Curate agents. Code:
-    - S: small molecule
     - P: protein
-    - B: biological process
     - F: family
     - C: complex
     - X: complex of families
+    - S: small molecule
+    - B: biological process
+    - U: unknown/other
     - M: microRNA
-    - U: unknown
   - JAB curated rows 2-101; BMG 102-251; JAB 252-301 (row 1 is header)
 - Estimate percentage of entitities that are family, complex, or combined
   - family_frequency.py
