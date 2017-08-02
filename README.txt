@@ -1,12 +1,3 @@
-- Divide the no-bioentities corpus in to a 90% (training) set and a 10%
-  validation set.
-- Process the 90% set, and look at the frequency of ungrounded entities
-  and ungrounded relations.
-- Plot frequency distribution of ungrounded entities
-- Curate top XXX entities, categorize by type
-- Repeat for grounded entities, identifying errors
-- 
-
 Methods (so far)
 
 Step 1: Get Proteins->Genes->PMIDs
@@ -34,6 +25,7 @@ Step 2: Build REACH without Bioentities and Read PMIDs
   - output: combined_genes_no_bioentities_stmts.pkl (pmid->stmts file, Python3)
 
 Step 3: Shuffle the PMIDs and subsample the data into two files
+- 80% of papers to training set, 20% of papers to test set
 - get_training_test_stmts.py
   - output: training_pmid_stmts.pkl
   - output: test_pmid_stmts.pkl
@@ -53,12 +45,12 @@ Step 4: stmt_entity_stats
     - F: family
     - C: complex
     - X: complex of families
+    - M: microRNA
     - U: unknown
-  - Curate JAB and BMG separately, record and reconcile any differences
-  - output: training_agents_sample.xlsx
+  - JAB curated rows 2-101; BMG 102-251; JAB 252-301 (row 1 is header)
 - Estimate percentage of entitities that are family, complex, or combined
   - family_frequency.py
-  - Analyzes training_agents.xlsx, plots percentage
+  - Analyzes training_agents_sample_curated.csv, plots percentage
 
 
   - Fraction of most frequent agents that in
