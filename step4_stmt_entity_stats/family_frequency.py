@@ -7,27 +7,27 @@ if __name__ == '__main__':
 
     pf.set_fig_params()
 
-    with open('training_agents.xlsx', 'rb') as f:
-        data = pd.read_excel(f, sheetname=0)
+    with open('training_agents_sample_curated.csv', 'rb') as f:
+        data = pd.read_csv(f)
 
     family_cats = ('F', 'C', 'X')
-    num_curated = 310
+    num_curated = 300
     curated = data[0:num_curated]
     # Iterate over rows and calculate rolling ratio due to families/complexes
     totals = np.zeros(num_curated)
     families = np.zeros(num_curated)
     categories = defaultdict(list)
     for ix, row in curated.iterrows():
-        cat = row['CategoryFinal']
-        categories[cat].append(row['Freq'])
+        cat = row['EntityType']
+        categories[cat].append(1)
         if ix == 0:
-            totals[ix] = row['Freq']
+            totals[ix] = 1
             if cat in family_cats:
-                families[ix] = row['Freq']
+                families[ix] = 1
         else:
-            totals[ix] = row['Freq'] + totals[ix - 1]
+            totals[ix] = totals[ix - 1] + 1
             if cat in family_cats:
-                families[ix] = families[ix - 1] + row['Freq']
+                families[ix] = families[ix - 1] + 1
             else:
                 families[ix] = families[ix - 1]
 
