@@ -17,12 +17,15 @@ def load_texts(stmts_filename):
     texts = agent_texts_with_grounding(stmts)
     return texts
 
-def get_keyword_matches(kw, texts):
+def get_keyword_matches(kw, texts, match_type='partial'):
     hits = []
     for entry in texts:
         text = entry[0]
-        pr = fuzz.partial_ratio(kw.upper(), text.upper())
-        hits.append((text, pr))
+        if match_type == 'partial':
+            ratio = fuzz.partial_ratio(kw.upper(), text.upper())
+        else:
+            ratio = fuzz.ratio(kw.upper(), text.upper())
+        hits.append((entry, ratio))
     hits.sort(key=lambda x: x[1], reverse=True)
     return hits
 
@@ -30,8 +33,10 @@ if __name__ == '__main__':
     texts = load_texts('../step3_sample_training_test/training_pmid_stmts.pkl')
     #with open('../entities.csv', 'rt') as f:
     #    bioents = [line.strip() for line in f.readlines()]
-    def get(kw):
-        return get_keyword_matches(kw, texts)
+    def getp(kw):
+        return get_keyword_matches(kw, texts, match_type='partial')
+    def getr(kw):
+        return get_keyword_matches(kw, texts, match_type='ratio')
 
     # Workflow:
     #
