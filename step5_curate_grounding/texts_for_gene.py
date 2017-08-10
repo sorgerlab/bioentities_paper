@@ -9,14 +9,6 @@ from fuzzywuzzy import fuzz
 
 # Search the list of entities/freqs for that synonym
 
-def load_texts(stmts_filename):
-    with open(stmts_filename, 'rb') as f:
-        stmts_by_paper = pickle.load(f)
-    stmts = [s for stmt_list in stmts_by_paper.values() for s in stmt_list]
-
-    texts = agent_texts_with_grounding(stmts)
-    return texts
-
 def get_keyword_matches(kw, texts, match_type='partial'):
     hits = []
     for entry in texts:
@@ -30,7 +22,12 @@ def get_keyword_matches(kw, texts, match_type='partial'):
     return hits
 
 if __name__ == '__main__':
-    texts = load_texts('../step3_sample_training_test/training_pmid_stmts.pkl')
+    stmts_filename = '../step3_sample_training_test/training_pmid_stmts.pkl'
+    with open(stmts_filename, 'rb') as f:
+        stmts_by_paper = pickle.load(f)
+    stmts = [s for stmt_list in stmts_by_paper.values() for s in stmt_list]
+
+    texts = agent_texts_with_grounding(stmts)
     #with open('../entities.csv', 'rt') as f:
     #    bioents = [line.strip() for line in f.readlines()]
     def getp(kw):
