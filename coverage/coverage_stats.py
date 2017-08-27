@@ -5,7 +5,7 @@ from indra.util import plot_formatting as pf
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 
-bepath = '../../../bioentities'
+bepath = '../../../../bioentities'
 
 def read_csv(fh, delimiter, quotechar):
     if sys.version_info.major < 3:
@@ -88,5 +88,5 @@ if __name__ == '__main__':
     print('BEL only: %d (%.0f%%)' % (len(bel_only),
                                      100.0*len(bel_only)/len(entities)))
 
-    groups = [['BEL'], ['IP', 'PF', 'RE', 'NXP', 'NCIT', 'GO']]
+    groups = [['BEL'], ['IP', 'PF', 'RE', 'NXP', 'NCIT', 'GO', 'MESH']]
     plot_venn_diagram(db_mappings, groups)
