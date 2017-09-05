@@ -1,3 +1,5 @@
+import os
+import sys
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -73,7 +75,8 @@ def grounding_stats(data):
         cat_pct_str = '%.1f' % cat_pct
         correct_rows = cat_rows[cat_rows.Grounding == 1]
         correct_number = len(correct_rows)
-        correct_pct = (100 * correct_number / float(cat_number))
+        correct_pct = (100 * correct_number / float(cat_number)) if \
+            cat_number > 0 else 0
         correct_pct_of_total = (100 * correct_number) / float(num_agents)
         correct_pct_str = '%.1f' % correct_pct
         rows.append((cat, cat_number, cat_pct_str, correct_number,
@@ -96,15 +99,25 @@ def grounding_stats(data):
                loc='upper right', frameon=False, fontsize=pf.fontsize)
     plt.show()
     print(rows)
-    write_unicode_csv('training_agents_sample_stats.csv', rows)
+    write_unicode_csv('%s_agents_sample_stats.csv' % mode, rows)
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage: %s [training|test]' % os.path.basename(__file__))
+        sys.exit()
+    mode = sys.argv[1]
+    if mode not in ('training', 'test'):
+        print('Usage: %s [training|test]' % os.path.basename(__file__))
+        sys.exit()
+
 
     pf.set_fig_params()
     plt.ion()
     family_cats = ('F', 'C', 'X')
 
-    with open('training_agents_sample_curated.csv', 'rb') as f:
+    fname = 'training_agents_sample_curated.csv' if mode == 'training' else \
+            'test_agents_with_be_sample.csv'
+    with open(fname, 'rb') as f:
         data = pd.read_csv(f)
 
     num_curated = 300
