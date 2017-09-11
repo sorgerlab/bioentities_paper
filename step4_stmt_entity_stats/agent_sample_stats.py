@@ -116,7 +116,7 @@ if __name__ == '__main__':
     family_cats = ('F', 'C', 'X')
 
     fname = 'training_agents_sample_curated.csv' if mode == 'training' else \
-            'test_agents_with_be_sample.csv'
+            'test_agents_with_be_sample_curated.csv'
     with open(fname, 'rb') as f:
         data = pd.read_csv(f)
 
