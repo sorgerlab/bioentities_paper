@@ -1,9 +1,11 @@
 import os
 import sys
 import csv
+import numpy
 from indra.util import plot_formatting as pf
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
+from matplotlib.patches import Circle
 
 bepath = '../../../../bioentities'
 
@@ -60,9 +62,17 @@ def plot_venn_diagram(group_entries, missing):
     plt.figure(figsize=(4, 3))
     v3 = venn3(subsets=subsets, set_labels=('Pfam / InterPro / NextProt / GO',
                                             'NCIT / MeSH', 'BEL / Reactome'))
-    plt.savefig('bioentities_mapping.pdf')
+    radius_missing = v3.radii[0] * numpy.sqrt(1.0*missing / len(subsets[0]))
+    center_missing = [0.8, 0]
+    circle_missing = Circle(center_missing, radius_missing, color='black',
+                            alpha=0.6)
     ax = plt.gca()
+    ax.add_patch(circle_missing)
+    ax.text(center_missing[0]-0.2, center_missing[1]+0.1, 'No mapping')
+    ax.text(center_missing[0], center_missing[1], str(missing))
+    plt.xlim((-1, 1))
     pf.format_axis(ax)
+    plt.savefig('bioentities_mapping.pdf')
     return v3
 
 if __name__ == '__main__':
