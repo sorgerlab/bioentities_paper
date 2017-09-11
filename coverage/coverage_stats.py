@@ -42,7 +42,7 @@ def find_db_mappings(entity, equivalences):
             dbs.append(db)
     return dbs
 
-def plot_venn_diagram(db_mappings, groups):
+def get_entries_by_group(db_mappings, groups):
     missing = len([entity for entity, db_eq in db_mappings.items()
                    if not db_eq])
     group_entries = []
@@ -52,19 +52,18 @@ def plot_venn_diagram(db_mappings, groups):
             if set(db_eq) & set(group):
                 entries.append(entity)
         group_entries.append(entries)
-    subsets = (len(set(group_entries[0]) - set(group_entries[1])),
-               len(set(group_entries[1]) - set(group_entries[0])),
-               missing,
-               len(set(group_entries[0]) & set(group_entries[1])),
-               0,
-               0,
-               0)
+    return group_entries, missing
+
+def plot_venn_diagram(group_entries, missing):
+    subsets = [set(g) for g in group_entries]
     pf.set_fig_params()
     plt.figure(figsize=(4, 3))
-    venn3(subsets=subsets, set_labels=('BEL', 'Other', 'Unmapped'))
+    v3 = venn3(subsets=subsets, set_labels=('Pfam / InterPro / NextProt / GO',
+                                            'NCIT / MeSH', 'BEL / Reactome'))
     plt.savefig('bioentities_mapping.pdf')
     ax = plt.gca()
     pf.format_axis(ax)
+    return v3
 
 if __name__ == '__main__':
     # Read all entities in Bioentities
@@ -79,14 +78,11 @@ if __name__ == '__main__':
 
     missing = sorted([entity for entity, db_eq in db_mappings.items()
                       if not db_eq])
-    bel_only = sorted([entity for entity, db_eq in db_mappings.items()
-                       if db_eq == ['BEL']])
 
     print('Equivalences coverage\n=====================')
     print('Missing: %d (%.0f%%)' % (len(missing),
                                     100.0*len(missing)/len(entities)))
-    print('BEL only: %d (%.0f%%)' % (len(bel_only),
-                                     100.0*len(bel_only)/len(entities)))
 
-    groups = [['BEL'], ['IP', 'PF', 'RE', 'NXP', 'NCIT', 'GO', 'MESH']]
-    plot_venn_diagram(db_mappings, groups)
+    groups = [['IP', 'PF','NXP', 'GO'], ['NCIT', 'MESH'], ['BEL', 'RE']]
+    group_entries, missing = get_entries_by_group(db_mappings, groups)
+    v3 = plot_venn_diagram(group_entries, missing)
