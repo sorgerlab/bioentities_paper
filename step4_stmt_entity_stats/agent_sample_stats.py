@@ -7,60 +7,6 @@ from indra.util import write_unicode_csv, plot_formatting as pf
 from collections import defaultdict
 
 
-def plot_rolling_ratio(curated):
-    # Iterate over rows and calculate rolling ratio due to families/complexes
-    totals = np.zeros(num_curated)
-    families = np.zeros(num_curated)
-    categories = defaultdict(list)
-    for ix, row in curated.iterrows():
-        cat = row['EntityType']
-        categories[cat].append(1)
-        if ix == 0:
-            totals[ix] = 1
-            if cat in family_cats:
-                families[ix] = 1
-        else:
-            totals[ix] = totals[ix - 1] + 1
-            if cat in family_cats:
-                families[ix] = families[ix - 1] + 1
-            else:
-                families[ix] = families[ix - 1]
-
-    total = 0
-    cat_summary = {}
-    # Iterate to get the total
-    total_counts = np.sum([np.sum(freqs)
-                           for freqs in categories.values()])
-    for cat, freqs in categories.items():
-        cat_freq = np.sum(freqs)
-        cat_summary[cat] = (len(freqs), cat_freq,
-                            (100 * cat_freq) / float(total_counts))
-        print('%s: %d instances, %d occurrences (%.2f%%)' %
-              (cat, len(freqs), cat_freq,
-               (100 * cat_freq) / float(total_counts)))
-
-    plt.ion()
-    index = range(1, num_curated + 1)
-    fig = plt.figure(figsize=(3, 3), dpi=150)
-    ax = fig.gca()
-    ax.plot(index, totals, 'r')
-    ax.plot(index, families, 'b')
-    pf.format_axis(ax)
-    ax.set_ylabel('Number of occurrences')
-    ax.set_yscale('log')
-    ax.set_xlabel('Entity index')
-    plt.subplots_adjust(left=0.21)
-
-    ratio = families / totals
-    fig = plt.figure(figsize=(3, 3), dpi=150)
-    ax = fig.gca()
-    ax.plot(index, ratio)
-    pf.format_axis(ax)
-    ax.set_xlabel('Entity index')
-    ax.set_ylabel('Pct. family/complex occurrences')
-    plt.subplots_adjust(left=0.16)
-
-
 def grounding_stats(data):
     cats = (['P'], ['F', 'C', 'X'], ['S'], ['B'], ['U'], ['M'])
     cat_names = ('Protein/gene', 'Family/complex', 'Small molecule',
@@ -122,5 +68,4 @@ if __name__ == '__main__':
 
     num_curated = 300
     curated = data[0:num_curated]
-    #plot_rolling_ratio(curated)
     grounding_stats(curated)
