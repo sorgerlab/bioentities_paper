@@ -92,16 +92,15 @@ def grounding_stats(data):
 
 def print_combined_table(results):
     rows = []
-    header = ['Entity type',
-              '\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.',
+    header = ['\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.',
               '\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.']
     rows.append(header)
     r_tr = results['training']
     r_te = results['test']
 
     def format(res):
-        return (res[1], '%.1f \\%%' % res[2], res[3],
-                '%.1f $\pm$ %.1f \\%%' % (res[4], res[5]))
+        return (res[1], '%.1f' % res[2], res[3],
+                '%.1f $\pm$ %.1f' % (res[4], res[5]))
 
     for row_ix in range(6):
         row = []
@@ -113,20 +112,27 @@ def print_combined_table(results):
     return rows
 
 def to_latex_table(rows):
-    table_format_str = '|l|' + ''.join(['r|'] * (len(rows[0]) - 1))
-    header_row_str = ' & '.join([r'\textbf{%s}' % c for c in rows[0]])
+    #table_format_str = 'l' + ''.join(['r'] * (len(rows[0]) - 1))
+    table_format_str = 'lrrrrrrrrr'
+    header_row_str = ' & ' + \
+                     ' & '.join([r'\textbf{%s}' % c for c in rows[0][0:4]]) +\
+                     ' & & ' + \
+                     ' & '.join([r'\textbf{%s}' % c for c in rows[0][4:]])
     latex = dedent(r"""
         \begin{table}[!ht]
         \centering
         \caption{{\bf Table caption here.}}
         \resizebox{\textwidth}{!}{%%
         \begin{tabular}{%s}
-        \hline
-        %s \\ \hline
+        & \multicolumn{4}{c}{\textbf{No Bioentities}} & &
+          \multicolumn{4}{c}{\textbf{With Bioentities}} \\
+        %s \\ \cline{2-5}\cline{7-10}
         """ % (table_format_str, header_row_str))
     for row in rows[1:]:
-        latex += ' & '.join([str(c) for c in row])
-        latex += r'\\ \hline' + '\n'
+        latex += ' & '.join([str(c) for c in row[0:5]])
+        latex += ' & & '
+        latex += ' & '.join([str(c) for c in row[5:]])
+        latex += r'\\' + '\n'
     latex += dedent(r"""
         \end{tabular}}
         \label{tablabel}
