@@ -83,14 +83,21 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
         middles.append(middle_count)
         bottoms.append(bottom_count)
     xticks = numpy.arange(len(stacks_groups))
-    tb = plt.bar(xticks, bottoms, color='b')
-    mb = plt.bar(xticks, middles, bottom=bottoms, color='g')
-    bb = plt.bar(xticks, tops, bottom=numpy.array(middles)+numpy.array(bottoms),
-                 color='y')
+    pf.set_fig_params()
+    plt.figure(figsize=(3, 3), dpi=300)
+    bb = plt.bar(xticks, bottoms, color='b', align='center')
+    mb = plt.bar(xticks, middles, bottom=bottoms, color='g', align='center')
+    tb = plt.bar(xticks, tops, bottom=numpy.array(middles)+numpy.array(bottoms),
+                 color='y', align='center')
     plt.legend((tb[0], mb[0], bb[0]), ('Top (Bioentities)',
                                        'Middle (Bioentities)',
-                                       'Bottom (specific gene)'))
+                                       'Bottom (specific gene)'),
+                loc='upper right', frameon=False, fontsize=pf.fontsize)
     plt.xticks(xticks, labels)
+    plt.ylabel('Number of times grounded to in test corpus')
+    plt.subplots_adjust(left=0.15, right=0.94)
+    ax = plt.gca()
+    pf.format_axis(ax)
     plt.show()
 
 
@@ -104,7 +111,7 @@ if __name__ == '__main__':
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)
     missing_entries = get_missing_entries(entries, counts)
-    groups_to_plot = ['PPP2', 'PLC', 'AMPK', 'Activin', 'G_protein']
+    groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
     stacks_groups = get_stacks_groups(groups_to_plot)
     labels = [g.replace('_', ' ') for g in groups_to_plot]
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
