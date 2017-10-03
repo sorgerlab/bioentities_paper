@@ -90,6 +90,33 @@ def grounding_stats(data):
     return rows
 
 
+def combined_graph(results):
+    prot_bef, prot_bef_err = results['training'][0][4:6]
+    fam_bef, fam_bef_err = results['training'][1][4:6]
+    prot_aft, prot_aft_err = results['test'][0][4:6]
+    fam_aft, fam_aft_err = results['test'][1][4:6]
+    plt.figure(figsize=(2, 3), dpi=150)
+    width = 0.3
+    bef_color = 'red'
+    aft_color = 'blue'
+    befh = plt.bar(0, prot_bef, width=width, yerr=prot_bef_err,
+                   color=bef_color)
+    afth = plt.bar(0 + width, prot_aft, width=width, yerr=prot_aft_err,
+                   color=aft_color)
+    plt.bar(1, fam_bef, width=width, yerr=fam_bef_err, color=bef_color)
+    plt.bar(1 + width, fam_aft, width=width, yerr=fam_aft_err,
+            color=aft_color)
+    plt.xticks((0+(width/2.), 1+(width/2.)), ('Protein/gene', 'Family/complex'),
+               rotation=90)
+    plt.ylabel('Grounding accuracy')
+    ax = plt.gca()
+    pf.format_axis(ax, tick_padding=3)
+    plt.legend((befh, afth), ('Before', 'After'), loc='upper right',
+               frameon=False, fontsize=pf.fontsize)
+    plt.subplots_adjust(left=0.18, bottom=0.27, top=0.94)
+    plt.savefig('combined_results.pdf')
+
+
 def print_combined_table(results):
     rows = []
     header = ['\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.',
@@ -110,6 +137,7 @@ def print_combined_table(results):
     write_unicode_csv('combined_results_table.csv', rows)
     to_latex_table(rows)
     return rows
+
 
 def to_latex_table(rows):
     #table_format_str = 'l' + ''.join(['r'] * (len(rows[0]) - 1))
@@ -139,6 +167,7 @@ def to_latex_table(rows):
         \end{table}
         """)
     print(latex)
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -171,5 +200,5 @@ if __name__ == '__main__':
 
     if mode == 'combined':
         rows = print_combined_table(results)
-
+        combined_graph(results)
 
