@@ -1,4 +1,5 @@
 import csv
+import sys
 
 
 def read_csv(fh, delimiter, quotechar):
