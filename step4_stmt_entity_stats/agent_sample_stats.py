@@ -1,10 +1,47 @@
 import os
 import sys
-import pandas as pd
+import pickle
 import numpy as np
+import pandas as pd
+from collections import defaultdict
 from matplotlib import pyplot as plt
 from indra.util import write_unicode_csv, plot_formatting as pf
-from collections import defaultdict
+from indra.tools.reading.reading_results_stats import report_grounding
+
+
+def get_ungrounded_stats():
+    fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
+    with open(fname, 'rb') as fh:
+        stmts = pickle.load(fh)
+    allu_test, anyu_test = report_grounding(stmts)
+
+    fname = '../step3_sample_training_test/training_pmid_stmts.pkl'
+    stmts = []
+    with open(fname, 'rb') as fh:
+        st = pickle.load(fh)
+        for k, v in st.items():
+            stmts += v
+    allu_train, anyu_train = report_grounding(stmts)
+    return (allu_test, anyu_test, allu_train, anyu_train)
+
+
+def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
+    pf.set_fig_params()
+    plt.figure(figsize=(3, 2), dpi=300)
+    xticks = np.array([0, 1])
+    col_width = 0.35
+    btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train], col_width,
+                    align='center', linewidth=0.5, color='r')
+    btest = plt.bar(xticks + 0.5*col_width, [allu_test, anyu_test], col_width,
+                    align='center', linewidth=0.5, color='b')
+    plt.xticks(xticks, ('All args ungrounded', 'Any args ungrounded'))
+    plt.ylabel('Pct. Extracted Events')
+    plt.ylim((0, 35))
+    ax = plt.gca()
+    pf.format_axis(ax)
+    plt.legend((btrain, btest), ('Training corpus', 'Test corpus'),
+               loc='upper left', frameon=False, fontsize=pf.fontsize)
+    plt.savefig('ungrounded_stats.pdf')
 
 
 def grounding_stats(data):
