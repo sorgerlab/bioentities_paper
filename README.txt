@@ -2,12 +2,13 @@ Methods (so far)
 
 Step 1: Get Proteins->Genes->PMIDs
 
-- Download Reactome signaling proteins list (see signaling_proteins_readme.txt)
+- Download Reactome signaling proteins list
+  (see step1_genes_pmids/signaling_proteins_readme.txt)
   - output: signaling_proteins.tsv
-- process_proteins.py
+- Run process_proteins.py
   - For each protein, get gene name.
   - output: signaling_genes.txt
-  - Then get genes identified in bioentities/relations.csv (which included
+- Get genes identified in bioentities/relations.csv (which included
     families from BEL and from the Ras family).
   - Combine the gene lists together
   - output: combined_genes.txt.
@@ -31,7 +32,8 @@ Step 3: Shuffle the PMIDs and subsample the data into two files
   - output: test_pmid_stmts.pkl
 
 Step 4: stmt_entity_stats
-- get_agents_for_evaluation.py
+- Run get_agents_for_evaluation.py. Creates random sample of agents from
+  training (or test) set for evaluation.
   - output: training_agents_sample.csv
   - output: training_agents.csv
   - output: training_ungrounded.csv
@@ -48,11 +50,12 @@ Step 4: stmt_entity_stats
     - U: unknown/other
     - M: microRNA
   - JAB curated rows 2-101; BMG 102-251; JAB 252-301 (row 1 is header)
-- Estimate percentage of entitities that are family, complex, or combined
-  - family_frequency.py
-  - Analyzes training_agents_sample_curated.csv, plots percentage
+- For ease of curation, run generate_agent_links.py to create an HTML table
+  to check groundings in different databases.
+- Same for test set.
 
-
+Step 5: Curate grounding map
+  - texts_for_gene.py helps in finding lexical synonyms for unmapped families.
   - Fraction of most frequent agents that in
 clude family or complex
     - Fraction of mentions
