@@ -1,3 +1,4 @@
+from textwrap import dedent
 import os
 import sys
 import pickle
@@ -43,6 +44,9 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
                loc='upper left', frameon=False, fontsize=pf.fontsize)
     plt.savefig('ungrounded_stats.pdf')
 
+cats = (['P'], ['F', 'C', 'X'], ['S'], ['B'], ['U'], ['M'])
+cat_names = ('Protein/gene', 'Family/complex', 'Small molecule',
+             'Biological process', 'Other/unknown', 'microRNA')
 
 def grounding_stats(data):
     cats = (['P'], ['F', 'C', 'X'], ['S'], ['B'], ['U'], ['M'])
@@ -62,8 +66,6 @@ def grounding_stats(data):
             cat_number > 0 else 0
         correct_pct_of_total = (100 * correct_number) / float(num_agents)
         correct_pct_str = '%.1f' % correct_pct
-        rows.append((cat, cat_number, cat_pct_str, correct_number,
-                     correct_pct_str))
         def stderr(k, n):
             return np.sqrt(((k/float(n)) * (1-(k/float(n)))) / float(n))
         stderr_inc = 100 * stderr(cat_number - correct_number, num_agents)
@@ -73,6 +75,8 @@ def grounding_stats(data):
         corr_handle = plt.bar(ix, correct_pct_of_total, color='blue',
                               align='center', yerr=stderr_corr,
                               linewidth=0.5)
+        rows.append((cat, cat_number, cat_pct, correct_number,
+                     correct_pct, stderr_corr))
     plt.xticks(range(len(cats)), cat_names, rotation=90)
     plt.ylabel('Pct. Curated Entities')
     plt.subplots_adjust(left=0.18, bottom=0.43, top=0.96)
@@ -83,26 +87,83 @@ def grounding_stats(data):
     plt.show()
     print(rows)
     write_unicode_csv('%s_agents_sample_stats.csv' % mode, rows)
+    return rows
+
+
+def print_combined_table(results):
+    rows = []
+    header = ['Entity type',
+              '\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.',
+              '\\#', 'Entity \\%', '\\# Corr.', '\\% Corr.']
+    rows.append(header)
+    r_tr = results['training']
+    r_te = results['test']
+
+    def format(res):
+        return (res[1], '%.1f \\%%' % res[2], res[3],
+                '%.1f $\pm$ %.1f \\%%' % (res[4], res[5]))
+
+    for row_ix in range(6):
+        row = []
+        label = cat_names[cats.index(r_tr[row_ix][0])]
+        row = (label,) + format(r_tr[row_ix])  + format(r_te[row_ix])
+        rows.append(row)
+    write_unicode_csv('combined_results_table.csv', rows)
+    to_latex_table(rows)
+    return rows
+
+def to_latex_table(rows):
+    table_format_str = '|l|' + ''.join(['r|'] * (len(rows[0]) - 1))
+    header_row_str = ' & '.join([r'\textbf{%s}' % c for c in rows[0]])
+    latex = dedent(r"""
+        \begin{table}[!ht]
+        \centering
+        \caption{{\bf Table caption here.}}
+        \resizebox{\textwidth}{!}{%%
+        \begin{tabular}{%s}
+        \hline
+        %s \\ \hline
+        """ % (table_format_str, header_row_str))
+    for row in rows[1:]:
+        latex += ' & '.join([str(c) for c in row])
+        latex += r'\\ \hline' + '\n'
+    latex += dedent(r"""
+        \end{tabular}}
+        \label{tablabel}
+        \end{table}
+        """)
+    print(latex)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('Usage: %s [training|test]' % os.path.basename(__file__))
+        print('Usage: %s [training|test|combined]' % os.path.basename(__file__))
         sys.exit()
     mode = sys.argv[1]
-    if mode not in ('training', 'test'):
+    if mode not in ('training', 'test', 'combined'):
         print('Usage: %s [training|test]' % os.path.basename(__file__))
         sys.exit()
-
 
     pf.set_fig_params()
     plt.ion()
     family_cats = ('F', 'C', 'X')
+    filenames = {'training': 'training_agents_sample_curated.csv',
+                 'test': 'test_agents_with_be_sample_curated.csv'}
+    if mode == 'combined':
+        file_keys = ['training', 'test']
+    else:
+        file_keys = [mode]
 
-    fname = 'training_agents_sample_curated.csv' if mode == 'training' else \
-            'test_agents_with_be_sample_curated.csv'
-    with open(fname, 'rb') as f:
-        data = pd.read_csv(f)
+    results = {}
+    for file_key in file_keys:
+        filename = filenames[file_key]
+        with open(filename, 'rb') as f:
+            data = pd.read_csv(f)
 
-    num_curated = 300
-    curated = data[0:num_curated]
-    grounding_stats(curated)
+        num_curated = 300
+        curated = data[0:num_curated]
+        results[file_key] = grounding_stats(curated)
+
+    if mode == 'combined':
+        rows = print_combined_table(results)
+
+
