@@ -6,24 +6,48 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot as plt
+import indra.tools.assemble_corpus as ac
+from indra.preassembler import grounding_mapper as gm
 from indra.util import write_unicode_csv, plot_formatting as pf
-from indra.tools.reading.reading_results_stats import report_grounding
 
 
-def get_ungrounded_stats():
+def make_ungrounded_stats():
+    def get_ungrounded_stats(stmts):
+        # What fraction of statements grounded?
+        all_ungrounded = 0
+        any_ungrounded = 0
+        for stmt in stmts:
+            agents_ungrounded = []
+            for ag in stmt.agent_list():
+                if ag is not None and list(ag.db_refs.keys()) == ['TEXT']:
+                    agents_ungrounded.append(True)
+                else:
+                    agents_ungrounded.append(False)
+            if all(agents_ungrounded):
+                all_ungrounded += 1
+            if any(agents_ungrounded):
+                any_ungrounded += 1
+        all_ungrounded_ratio = 100 * (all_ungrounded / float(len(stmts)))
+        any_ungrounded_ratio = 100 * (any_ungrounded / float(len(stmts)))
+        return all_ungrounded_ratio, any_ungrounded_ratio
+
+    def get_agent_counts(stmts):
+        agents = gm.agent_texts_with_grounding(stmts)
+        agent_counts = [t[2] for t in agents]
+        return agent_counts
+
     fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
-    with open(fname, 'rb') as fh:
-        stmts = pickle.load(fh)
-    allu_test, anyu_test = report_grounding(stmts, plot_prefix='test')
+    stmts = ac.load_statements(fname)
+    allu_test, anyu_test = get_ungrounded_stats(stmts)
+    counts_test = get_agent_counts(stmts)
 
     fname = '../step3_sample_training_test/training_pmid_stmts.pkl'
-    stmts = []
-    with open(fname, 'rb') as fh:
-        st = pickle.load(fh)
-        for k, v in st.items():
-            stmts += v
-    allu_train, anyu_train = report_grounding(stmts, plot_prefix='training')
-    return (allu_test, anyu_test, allu_train, anyu_train)
+    stmts = ac.load_statements(fname)
+    allu_train, anyu_train = get_ungrounded_stats(stmts)
+    counts_train = get_agent_counts(stmts)
+
+    return (allu_test, anyu_test, allu_train, anyu_train,
+            counts_test, counts_train)
 
 
 def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
@@ -43,6 +67,39 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     plt.legend((btrain, btest), ('Training corpus', 'Test corpus'),
                loc='upper left', frameon=False, fontsize=pf.fontsize)
     plt.savefig('ungrounded_stats.pdf')
+
+
+def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
+    bin_interval = 10
+    fracs_total_list = []
+    bin_starts_list = []
+    for counts in counts_list:
+        freq_dist = []
+        bin_starts = range(0, len(counts), bin_interval)
+        bin_starts_list.append(bin_starts)
+        for bin_start_ix in bin_starts:
+            bin_end_ix = bin_start_ix + bin_interval
+            if bin_end_ix < len(counts):
+                freq_dist.append(np.sum(counts[bin_start_ix:bin_end_ix]))
+            else:
+                freq_dist.append(np.sum(counts[bin_start_ix:]))
+        freq_dist = np.array(freq_dist)
+        fracs_total = np.cumsum(freq_dist) / float(np.sum(counts))
+        fracs_total_list.append(fracs_total)
+
+    fig = plt.figure(figsize=(2, 2), dpi=300)
+    plt.ion()
+    ax = fig.gca()
+    for i, (bin_starts, fracs_total) in \
+        enumerate(zip(bin_starts_list, fracs_total_list)):
+        ax.plot(bin_starts, fracs_total, color=colors[i])
+    pf.format_axis(ax)
+    ax.legend(labels, loc='lower right', frameon=False, fontsize=pf.fontsize)
+    plt.subplots_adjust(left=0.23, bottom=0.16)
+    ax.set_xlabel('String index')
+    ax.set_ylabel('No. of occurrences')
+    ax.set_ylim([0, 1])
+    plt.savefig(plot_filename)
 
 
 cats = (['P'], ['F', 'C', 'X'], ['S'], ['B'], ['U'], ['M'])
@@ -202,6 +259,9 @@ if __name__ == '__main__':
     if mode == 'combined':
         rows = print_combined_table(results)
         combined_graph(results)
-
-    ug_stats = get_ungrounded_stats()
-    plot_ungrounded_stats(*ug_stats)
+    ug_stats = make_ungrounded_stats()
+    plot_ungrounded_stats(*ug_stats[:4])
+    plot_ungrounded_frequencies(ug_stats[4:],
+                                ('Test corpus', 'Training corpus'),
+                                ('b', 'r'),
+                                'ungrounded_frequencies.pdf')
