@@ -14,7 +14,7 @@ def get_ungrounded_stats():
     fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
     with open(fname, 'rb') as fh:
         stmts = pickle.load(fh)
-    allu_test, anyu_test = report_grounding(stmts)
+    allu_test, anyu_test = report_grounding(stmts, plot_prefix='test')
 
     fname = '../step3_sample_training_test/training_pmid_stmts.pkl'
     stmts = []
@@ -22,7 +22,7 @@ def get_ungrounded_stats():
         st = pickle.load(fh)
         for k, v in st.items():
             stmts += v
-    allu_train, anyu_train = report_grounding(stmts)
+    allu_train, anyu_train = report_grounding(stmts, plot_prefix='training')
     return (allu_test, anyu_test, allu_train, anyu_train)
 
 
@@ -31,8 +31,8 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     plt.figure(figsize=(3, 2), dpi=300)
     xticks = np.array([0, 1])
     col_width = 0.35
-    btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train], col_width,
-                    align='center', linewidth=0.5, color='r')
+    btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train],
+                     col_width, align='center', linewidth=0.5, color='r')
     btest = plt.bar(xticks + 0.5*col_width, [allu_test, anyu_test], col_width,
                     align='center', linewidth=0.5, color='b')
     plt.xticks(xticks, ('All args ungrounded', 'Any args ungrounded'))
@@ -43,6 +43,7 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     plt.legend((btrain, btest), ('Training corpus', 'Test corpus'),
                loc='upper left', frameon=False, fontsize=pf.fontsize)
     plt.savefig('ungrounded_stats.pdf')
+
 
 cats = (['P'], ['F', 'C', 'X'], ['S'], ['B'], ['U'], ['M'])
 cat_names = ('Protein/gene', 'Family/complex', 'Small molecule',
@@ -202,3 +203,5 @@ if __name__ == '__main__':
         rows = print_combined_table(results)
         combined_graph(results)
 
+    ug_stats = get_ungrounded_stats()
+    plot_ungrounded_stats(*ug_stats)

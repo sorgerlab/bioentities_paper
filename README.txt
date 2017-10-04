@@ -64,4 +64,7 @@ clude family or complex
   - Table with 3 columns Entity, Frequency, Category (F, C, X, or empty),
     Curator
 
-
+Measure coverage
+- test_entities_coverage.py:
+  - Creates a plot of frequency of groundings to each entity
+  -

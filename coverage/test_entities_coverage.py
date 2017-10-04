@@ -51,7 +51,7 @@ def plot_counts_by_entry(counts):
     plt.xlabel('Bioentities entries')
     ax = plt.gca()
     pf.format_axis(ax)
-
+    plt.savefig('entity_coverage_test_corpus.pdf')
 
 def get_stacks_groups(tops):
     groups = []
@@ -98,7 +98,7 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
     plt.subplots_adjust(left=0.15, right=0.94)
     ax = plt.gca()
     pf.format_axis(ax)
-    plt.show()
+    plt.savefig('entity_levels_coverage_test_corpus.pdf')
 
 
 if __name__ == '__main__':
@@ -114,4 +114,7 @@ if __name__ == '__main__':
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
     stacks_groups = get_stacks_groups(groups_to_plot)
     labels = [g.replace('_', ' ') for g in groups_to_plot]
+    #plt.ion()
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
+    plot_counts_by_entry(counts)
+
