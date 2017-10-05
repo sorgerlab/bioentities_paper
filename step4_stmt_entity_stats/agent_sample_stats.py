@@ -56,9 +56,9 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     xticks = np.array([0, 1])
     col_width = 0.35
     btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train],
-                     col_width, align='center', linewidth=0.5, color='r')
+                     col_width, align='center', linewidth=0.5, color=pf.ORANGE)
     btest = plt.bar(xticks + 0.5*col_width, [allu_test, anyu_test], col_width,
-                    align='center', linewidth=0.5, color='b')
+                    align='center', linewidth=0.5, color=pf.GREEN)
     plt.xticks(xticks, ('All args ungrounded', 'Any args ungrounded'))
     plt.ylabel('Pct. Extracted Events')
     plt.ylim((0, 35))
@@ -84,7 +84,7 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
             else:
                 freq_dist.append(np.sum(counts[bin_start_ix:]))
         freq_dist = np.array(freq_dist)
-        fracs_total = np.cumsum(freq_dist) / float(np.sum(counts))
+        fracs_total = np.cumsum(freq_dist)
         fracs_total_list.append(fracs_total)
 
     fig = plt.figure(figsize=(2, 2), dpi=300)
@@ -98,7 +98,6 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
     plt.subplots_adjust(left=0.23, bottom=0.16)
     ax.set_xlabel('String index')
     ax.set_ylabel('No. of occurrences')
-    ax.set_ylim([0, 1])
     plt.savefig(plot_filename)
 
 
@@ -127,10 +126,10 @@ def grounding_stats(data):
         def stderr(k, n):
             return np.sqrt(((k/float(n)) * (1-(k/float(n)))) / float(n))
         stderr_inc = 100 * stderr(cat_number - correct_number, num_agents)
-        inc_handle = plt.bar(ix, cat_pct, color='red', align='center',
+        inc_handle = plt.bar(ix, cat_pct, color=pf.ORANGE, align='center',
                              yerr=stderr_inc, linewidth=0.5)
         stderr_corr = 100 * stderr(correct_number, num_agents)
-        corr_handle = plt.bar(ix, correct_pct_of_total, color='blue',
+        corr_handle = plt.bar(ix, correct_pct_of_total, color=pf.GREEN,
                               align='center', yerr=stderr_corr,
                               linewidth=0.5)
         rows.append((cat, cat_number, cat_pct, correct_number,
@@ -155,8 +154,8 @@ def combined_graph(results):
     fam_aft, fam_aft_err = results['test'][1][4:6]
     plt.figure(figsize=(2, 3), dpi=150)
     width = 0.3
-    bef_color = 'red'
-    aft_color = 'blue'
+    bef_color = pf.ORANGE
+    aft_color = pf.GREEN
     befh = plt.bar(0, prot_bef, width=width, yerr=prot_bef_err,
                    color=bef_color)
     afth = plt.bar(0 + width, prot_aft, width=width, yerr=prot_aft_err,
@@ -263,5 +262,5 @@ if __name__ == '__main__':
     plot_ungrounded_stats(*ug_stats[:4])
     plot_ungrounded_frequencies(ug_stats[4:],
                                 ('Test corpus', 'Training corpus'),
-                                ('b', 'r'),
+                                (pf.GREEN, pf.ORANGE),
                                 'ungrounded_frequencies.pdf')
