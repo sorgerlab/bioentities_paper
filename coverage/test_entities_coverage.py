@@ -33,7 +33,6 @@ def get_hgnc_coverage_stats(stmts):
     return counts
 
 
-
 def get_missing_entries(entries, counts):
     return set(entries) - set(counts.keys())
 
@@ -73,6 +72,12 @@ def plot_counts_by_entry(counts):
     plt.subplots_adjust(left=0.19, bottom=0.11, top=0.93, right=0.95)
     plt.savefig('entity_coverage_test_corpus_distr.pdf')
     plt.show()
+
+    # Print top table
+    ntop = 5
+    for name, count in counts_ord[:ntop]:
+        print('%s & %d & %.1f\\\\' % (name, count,
+                                      100* count / numpy.sum(counts_for_name)))
 
 
 def get_stacks_groups(tops):
