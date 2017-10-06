@@ -43,16 +43,35 @@ def plot_counts_by_entry(counts):
     plt.figure(figsize=(2.5, 2.5), dpi=300)
     counts_ord = sorted(counts.items(), key=lambda x: x[1], reverse=True)
     names = [cc[0] for cc in counts_ord]
-    counts_for_name = [cc[1] for cc in counts_ord]
-    plt.bar(range(len(names)), counts_for_name, color='gray', linewidth=0)
-    plt.yscale('log')
+    counts_for_name = numpy.array([float(cc[1]) for cc in counts_ord])
+
+    # Plot absolute counts
+    plt.bar(range(len(names)), counts_for_name, color=pf.GREEN, linewidth=0)
     plt.xlim([0, len(names)])
     plt.ylabel('Number of times grounded to in test corpus')
     plt.xlabel('Bioentities entries')
+    plt.yscale('log')
     ax = plt.gca()
     pf.format_axis(ax)
     plt.subplots_adjust(left=0.14, bottom=0.11, top=0.93, right=0.95)
     plt.savefig('entity_coverage_test_corpus.pdf')
+    plt.show()
+
+    # Plot cumulative percentage
+    vals = numpy.cumsum(counts_for_name) / numpy.sum(counts_for_name)
+    idx50 = [i for i, v in enumerate(vals) if v >= 0.5][0]
+    plt.figure(figsize=(2.5, 2.5), dpi=300)
+    plt.plot(range(len(names)), vals, color=pf.GREEN)
+    plt.plot([0, idx50], [0.5, 0.5], color='black', linestyle='dashed')
+    plt.plot([idx50, idx50], [0, 0.5], color='black', linestyle='dashed')
+    plt.xlim([0, len(names)])
+    plt.ylabel('Cumulative rel. frequency of times \n'
+               'grounded to in test corpus')
+    plt.xlabel('Bioentities entries')
+    ax = plt.gca()
+    pf.format_axis(ax)
+    plt.subplots_adjust(left=0.19, bottom=0.11, top=0.93, right=0.95)
+    plt.savefig('entity_coverage_test_corpus_distr.pdf')
     plt.show()
 
 
