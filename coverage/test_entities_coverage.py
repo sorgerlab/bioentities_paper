@@ -43,9 +43,15 @@ def plot_counts_by_entry(counts):
     counts_ord = sorted(counts.items(), key=lambda x: x[1], reverse=True)
     names = [cc[0] for cc in counts_ord]
     counts_for_name = numpy.array([float(cc[1]) for cc in counts_ord])
+    vals = numpy.cumsum(counts_for_name) / numpy.sum(counts_for_name)
+    idx50 = [i for i, v in enumerate(vals) if v >= 0.5][0]
 
     # Plot absolute counts
-    plt.bar(range(len(names)), counts_for_name, color=pf.GREEN, linewidth=0)
+    xvals = range(len(names))
+    xvals_top, xvals_rest = xvals[:idx50], xvals[idx50:]
+    yvals_top, yvals_rest = counts_for_name[:idx50], counts_for_name[idx50:] 
+    plt.bar(xvals_top, yvals_top, color=pf.PURPLE, linewidth=0)
+    plt.bar(xvals_rest, yvals_rest, color=pf.GREEN, linewidth=0)
     plt.xlim([0, len(names)])
     plt.ylabel('Number of times grounded to in test corpus')
     plt.xlabel('Bioentities entries')
@@ -57,8 +63,7 @@ def plot_counts_by_entry(counts):
     plt.show()
 
     # Plot cumulative percentage
-    vals = numpy.cumsum(counts_for_name) / numpy.sum(counts_for_name)
-    idx50 = [i for i, v in enumerate(vals) if v >= 0.5][0]
+    print('50%% of mentions is covered by the first %d entries' % (idx50))
     plt.figure(figsize=(2.5, 2.5), dpi=300)
     plt.plot(range(len(names)), vals, color=pf.GREEN)
     plt.plot([0, idx50], [0.5, 0.5], color='black', linestyle='dashed')
@@ -130,6 +135,19 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
     plt.show()
 
 
+def plc_groundings(stmts):
+    group = get_stacks_groups(['PLC'])[0]
+    for element in group['bottom']:
+        print(element)
+        print('=====================')
+        for stmt in stmts:
+            for agent in stmt.agent_list():
+                if agent is not None:
+                    be_id = hgnc_client.get_hgnc_name(agent.db_refs.get('HGNC'))
+                    if be_id == element:
+                        print(stmt.evidence[0].pmid, stmt.evidence[0].text)
+
+
 if __name__ == '__main__':
     fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
     with open(fname, 'rb') as fh:
@@ -147,3 +165,4 @@ if __name__ == '__main__':
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
     plot_counts_by_entry(counts)
 
+    plc_groundings(stmts)
