@@ -56,18 +56,19 @@ def make_ungrounded_stats():
 def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     """Plot training vs test corpus any and all arguments ungrounded pcts."""
     pf.set_fig_params()
-    plt.figure(figsize=(2, 3), dpi=300)
+    plt.figure(figsize=(2, 2.2), dpi=300)
     xticks = np.array([0, 1])
     col_width = 0.3
     btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train],
-                     col_width, align='center', linewidth=0.5, color=pf.ORANGE)
+                     col_width, align='center', color=pf.ORANGE)
     btest = plt.bar(xticks + 0.5*col_width, [allu_test, anyu_test], col_width,
-                    align='center', linewidth=0.5, color=pf.GREEN)
-    plt.xticks(xticks, ('All args ungrounded', 'Any args ungrounded'))
+                    align='center', color=pf.GREEN)
+    plt.xticks(xticks, ('All args\nungrounded', 'Any args\nungrounded'))
     plt.ylabel('Pct. Extracted Events')
     plt.ylim((0, 35))
     ax = plt.gca()
     pf.format_axis(ax)
+    plt.subplots_adjust(left=0.17, bottom=0.14, top=0.94, right=0.93)
     plt.legend((btrain, btest), (without_be_label, with_be_label),
                loc='upper left', frameon=False, fontsize=pf.fontsize)
     plt.savefig('ungrounded_stats.pdf')
@@ -76,7 +77,7 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
 def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
     """Plot the distribution of ungrounded strings in training vs test corpus.
     """
-    bin_interval = 10
+    bin_interval = 1
     fracs_total_list = []
     bin_starts_list = []
     for counts in counts_list:
@@ -93,7 +94,7 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
         fracs_total = np.cumsum(freq_dist)
         fracs_total_list.append(fracs_total)
 
-    fig = plt.figure(figsize=(2, 2), dpi=300)
+    fig = plt.figure(figsize=(2, 2.2), dpi=300)
     plt.ion()
     ax = fig.gca()
     for i, (bin_starts, fracs_total) in \
@@ -103,9 +104,9 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
         ax.plot(xvals, yvals, color=colors[i])
     pf.format_axis(ax)
     ax.legend(labels, loc='lower right', frameon=False, fontsize=pf.fontsize)
-    plt.subplots_adjust(left=0.23, bottom=0.16)
-    ax.set_xlabel('String index')
-    ax.set_ylabel('No. of occurrences')
+    plt.subplots_adjust(left=0.18, bottom=0.15, right=0.95, top=0.92)
+    ax.set_xlabel('String rank (normalized)')
+    ax.set_ylabel('Rel. freq. of occurrences')
     plt.savefig(plot_filename)
 
 
@@ -257,8 +258,12 @@ if __name__ == '__main__':
 
     rows = print_combined_table(results)
     combined_graph(results)
-    import sys; sys.exit()
-    ug_stats = make_ungrounded_stats()
+    #ug_stats = make_ungrounded_stats()
+    #with open('ugstats.pkl', 'wb') as fh:
+    #    pickle.dump(ug_stats, fh)
+    with open('ugstats.pkl', 'rb') as fh:
+        ug_stats = pickle.load(fh)
+
     plot_ungrounded_stats(*ug_stats[:4])
     plot_ungrounded_frequencies(ug_stats[4:],
                                 (without_be_label, with_be_label),
