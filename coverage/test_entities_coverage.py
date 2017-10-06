@@ -40,18 +40,21 @@ def get_missing_entries(entries, counts):
 
 def plot_counts_by_entry(counts):
     pf.set_fig_params()
-    plt.figure(figsize=(4, 3))
+    plt.figure(figsize=(2.5, 2.5), dpi=300)
     counts_ord = sorted(counts.items(), key=lambda x: x[1], reverse=True)
     names = [cc[0] for cc in counts_ord]
     counts_for_name = [cc[1] for cc in counts_ord]
-    plt.bar(range(len(names)), counts_for_name)
+    plt.bar(range(len(names)), counts_for_name, color='gray', linewidth=0)
     plt.yscale('log')
     plt.xlim([0, len(names)])
     plt.ylabel('Number of times grounded to in test corpus')
     plt.xlabel('Bioentities entries')
     ax = plt.gca()
     pf.format_axis(ax)
+    plt.subplots_adjust(left=0.14, bottom=0.11, top=0.93, right=0.95)
     plt.savefig('entity_coverage_test_corpus.pdf')
+    plt.show()
+
 
 def get_stacks_groups(tops):
     groups = []
@@ -84,21 +87,23 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
         bottoms.append(bottom_count)
     xticks = numpy.arange(len(stacks_groups))
     pf.set_fig_params()
-    plt.figure(figsize=(3, 3), dpi=300)
-    bb = plt.bar(xticks, bottoms, color='b', align='center')
-    mb = plt.bar(xticks, middles, bottom=bottoms, color='g', align='center')
+    plt.figure(figsize=(3, 2.5), dpi=300)
+    bb = plt.bar(xticks, bottoms, color='#3182bd', align='center')
+    mb = plt.bar(xticks, middles, bottom=bottoms, color='#9ecae1',
+                 align='center')
     tb = plt.bar(xticks, tops, bottom=numpy.array(middles)+numpy.array(bottoms),
-                 color='y', align='center')
+                 color='#deebf7', align='center')
     plt.legend((tb[0], mb[0], bb[0]), ('Top (Bioentities)',
                                        'Middle (Bioentities)',
                                        'Bottom (specific gene)'),
                 loc='upper right', frameon=False, fontsize=pf.fontsize)
     plt.xticks(xticks, labels)
     plt.ylabel('Number of times grounded to in test corpus')
-    plt.subplots_adjust(left=0.15, right=0.94)
+    plt.subplots_adjust(left=0.15, right=0.97, top=0.95, bottom=0.08)
     ax = plt.gca()
     pf.format_axis(ax)
     plt.savefig('entity_levels_coverage_test_corpus.pdf')
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -114,7 +119,7 @@ if __name__ == '__main__':
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
     stacks_groups = get_stacks_groups(groups_to_plot)
     labels = [g.replace('_', ' ') for g in groups_to_plot]
-    #plt.ion()
+    plt.ion()
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
     plot_counts_by_entry(counts)
 
