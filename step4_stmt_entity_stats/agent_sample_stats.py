@@ -94,7 +94,7 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
         fracs_total = np.cumsum(freq_dist)
         fracs_total_list.append(fracs_total)
 
-    fig = plt.figure(figsize=(2, 2.2), dpi=300)
+    fig = plt.figure(figsize=(2.1, 2.2), dpi=300)
     plt.ion()
     ax = fig.gca()
     for i, (bin_starts, fracs_total) in \
@@ -102,9 +102,12 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
         xvals = np.array(bin_starts) / len(counts_list[i])
         yvals = fracs_total / float(np.sum(counts_list[i]))
         ax.plot(xvals, yvals, color=colors[i])
+    ax.plot(xvals, xvals, color='gray', linestyle='dotted')
+    labels = list(labels)
+    labels.append('Uniform distribution')
     pf.format_axis(ax)
     ax.legend(labels, loc='lower right', frameon=False, fontsize=pf.fontsize)
-    plt.subplots_adjust(left=0.18, bottom=0.15, right=0.95, top=0.92)
+    plt.subplots_adjust(left=0.18, bottom=0.15, right=0.96, top=0.92)
     ax.set_xlabel('String rank (normalized)')
     ax.set_ylabel('Rel. freq. of occurrences')
     plt.savefig(plot_filename)
