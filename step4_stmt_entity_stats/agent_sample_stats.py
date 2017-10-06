@@ -56,9 +56,9 @@ def make_ungrounded_stats():
 def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     """Plot training vs test corpus any and all arguments ungrounded pcts."""
     pf.set_fig_params()
-    plt.figure(figsize=(3, 2), dpi=300)
+    plt.figure(figsize=(2, 3), dpi=300)
     xticks = np.array([0, 1])
-    col_width = 0.35
+    col_width = 0.3
     btrain = plt.bar(xticks - 0.5*col_width, [allu_train, anyu_train],
                      col_width, align='center', linewidth=0.5, color=pf.ORANGE)
     btest = plt.bar(xticks + 0.5*col_width, [allu_test, anyu_test], col_width,
@@ -159,26 +159,30 @@ def combined_graph(results):
     fam_bef, fam_bef_err = results['training'][1][4:6]
     prot_aft, prot_aft_err = results['test'][0][4:6]
     fam_aft, fam_aft_err = results['test'][1][4:6]
-    plt.figure(figsize=(2, 3), dpi=150)
+    plt.figure(figsize=(2, 2.2), dpi=300)
     width = 0.3
     bef_color = pf.ORANGE
     aft_color = pf.GREEN
-    befh = plt.bar(0, prot_bef, width=width, yerr=prot_bef_err,
-                   color=bef_color)
-    afth = plt.bar(0 + width, prot_aft, width=width, yerr=prot_aft_err,
-                   color=aft_color)
-    plt.bar(1, fam_bef, width=width, yerr=fam_bef_err, color=bef_color)
-    plt.bar(1 + width, fam_aft, width=width, yerr=fam_aft_err,
-            color=aft_color)
-    plt.xticks((0+(width/2.), 1+(width/2.)), ('Protein/gene', 'Family/complex'),
-               rotation=90)
-    plt.ylabel('Grounding accuracy')
     ax = plt.gca()
+    error_kw = dict(ecolor='black', lw=1, capsize=2, capthick=1)
+    befh = plt.bar(-0.5*width, prot_bef, width=width, yerr=prot_bef_err,
+                   color=bef_color, error_kw=error_kw)
+    afth = plt.bar(0.5*width, prot_aft, width=width, yerr=prot_aft_err,
+                   color=aft_color, error_kw=error_kw)
+    plt.bar(1 - 0.5*width, fam_bef, width=width, yerr=fam_bef_err,
+            color=bef_color, error_kw=error_kw)
+    plt.bar(1 + 0.5*width, fam_aft, width=width, yerr=fam_aft_err,
+            color=aft_color, error_kw=error_kw)
+    plt.xticks((0+(width/2.), 1+(width/2.)),
+               ('Protein/\ngene', 'Family/\ncomplex'))
+    plt.ylabel('Grounding accuracy')
     pf.format_axis(ax, tick_padding=3)
-    plt.legend((befh, afth), ('Before', 'After'), loc='upper right',
+    plt.legend((befh, afth), (without_be_label, with_be_label),
+               loc='upper right',
                frameon=False, fontsize=pf.fontsize)
-    plt.subplots_adjust(left=0.18, bottom=0.27, top=0.94)
+    plt.subplots_adjust(left=0.22, bottom=0.15, top=0.94, right=0.94)
     plt.savefig('combined_results.pdf')
+    plt.show()
 
 
 def print_combined_table(results):
@@ -252,7 +256,8 @@ if __name__ == '__main__':
         results[file_key] = grounding_stats(curated)
 
     rows = print_combined_table(results)
-    #combined_graph(results)
+    combined_graph(results)
+    import sys; sys.exit()
     ug_stats = make_ungrounded_stats()
     plot_ungrounded_stats(*ug_stats[:4])
     plot_ungrounded_frequencies(ug_stats[4:],
