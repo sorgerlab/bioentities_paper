@@ -135,8 +135,9 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
     plt.show()
 
 
-def plc_groundings(stmts):
+def plc_groundings(stmts, counts, hgnc_counts):
     group = get_stacks_groups(['PLC'])[0]
+    '''
     for element in group['bottom']:
         print(element)
         print('=====================')
@@ -146,6 +147,23 @@ def plc_groundings(stmts):
                     be_id = hgnc_client.get_hgnc_name(agent.db_refs.get('HGNC'))
                     if be_id == element:
                         print(stmt.evidence[0].pmid, stmt.evidence[0].text)
+    '''
+    allc = 0
+    for gr, elements in group.items():
+        for element in elements:
+            if gr == 'bottom':
+                count = hgnc_counts[element]
+            else:
+                count = counts[element]
+            allc += count
+
+    for gr, elements in group.items():
+        for element in elements:
+            if gr == 'bottom':
+                count = hgnc_counts[element]
+            else:
+                count = counts[element]
+            print('%s: %.2f' % (element, 100.0*count / allc))
 
 
 if __name__ == '__main__':
@@ -157,6 +175,7 @@ if __name__ == '__main__':
 
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)
+    plc_groundings(stmts, counts, hgnc_counts)
     missing_entries = get_missing_entries(entries, counts)
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
     stacks_groups = get_stacks_groups(groups_to_plot)
@@ -165,4 +184,3 @@ if __name__ == '__main__':
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
     plot_counts_by_entry(counts)
 
-    plc_groundings(stmts)
