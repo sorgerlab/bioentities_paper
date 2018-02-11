@@ -1,13 +1,6 @@
 import pickle
 from indra.preassembler.grounding_mapper import *
 from fuzzywuzzy import fuzz
-#from process_proteins import get_relations_genes
-
-# Take a given gene symbol
-
-# Look up synonyms (in HGNC? Uniprot?)
-
-# Search the list of entities/freqs for that synonym
 
 def get_keyword_matches(kw, texts, match_type='partial'):
     hits = []

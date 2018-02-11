@@ -261,11 +261,7 @@ if __name__ == '__main__':
 
     rows = print_combined_table(results)
     combined_graph(results)
-    #ug_stats = make_ungrounded_stats()
-    #with open('ugstats.pkl', 'wb') as fh:
-    #    pickle.dump(ug_stats, fh)
-    with open('ugstats.pkl', 'rb') as fh:
-        ug_stats = pickle.load(fh)
+    ug_stats = make_ungrounded_stats()
 
     plot_ungrounded_stats(*ug_stats[:4])
     plot_ungrounded_frequencies(ug_stats[4:],

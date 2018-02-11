@@ -32,7 +32,3 @@ with open('test_pmid_stmts.pkl', 'wb') as f:
     print("Saving test stmts")
     pickle.dump(test_stmts, f)
 
-
-
-
-

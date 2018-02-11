@@ -136,18 +136,10 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
 
 
 def plc_groundings(stmts, counts, hgnc_counts):
+    """Print the number of times each PLC member was referred to as a
+    percentage of all the groundings to 
+    """
     group = get_stacks_groups(['PLC'])[0]
-    '''
-    for element in group['bottom']:
-        print(element)
-        print('=====================')
-        for stmt in stmts:
-            for agent in stmt.agent_list():
-                if agent is not None:
-                    be_id = hgnc_client.get_hgnc_name(agent.db_refs.get('HGNC'))
-                    if be_id == element:
-                        print(stmt.evidence[0].pmid, stmt.evidence[0].text)
-    '''
     allc = 0
     for gr, elements in group.items():
         for element in elements:
