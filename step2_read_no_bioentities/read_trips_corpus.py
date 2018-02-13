@@ -41,10 +41,13 @@ def read_abstract(pmid):
     try:
         dr.start()
     except SystemExit:
-        print('====EXITED====')
+        print('====FINISHED====')
         pass
-    with open('trips_abstracts/%s.ekb' % pmid, 'wb') as fh:
-        fh.write(dr.extractions[0].encode('utf-8'))
+    if not dr.extractions:
+        print('No results from reading!')
+    else:
+        with open('trips_abstracts/%s.ekb' % pmid, 'wb') as fh:
+            fh.write(dr.extractions[0].encode('utf-8'))
 
 if __name__ == '__main__':
     nabstracts = 100
