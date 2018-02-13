@@ -2,6 +2,7 @@
 their abstracts with the TRIPS/DRUM reading system."""
 
 import os
+import sys
 import random
 from indra.literature import pubmed_client
 from indra.sources.trips.drum_reader import DrumReader
@@ -31,13 +32,13 @@ def save_abstracts(pmids):
             fh.write(abstract.encode('utf-8'))
 
 
-def read_abstract(pmid):
+def read_abstract(pmid, port=6200):
     """Read a given PMID's abstract with TRIPS/DRUM and save the result."""
     if os.path.exists('trips_abstracts/%s.ekb' % pmid):
         return
     with open('trips_abstracts/%s.txt' % pmid, 'rb') as fh:
         abstract = fh.read().decode('utf-8')
-    dr = DrumReader(to_read=[abstract])
+    dr = DrumReader(to_read=[abstract], port=port)
     try:
         dr.start()
     except SystemExit:
@@ -50,9 +51,15 @@ def read_abstract(pmid):
             fh.write(dr.extractions[0].encode('utf-8'))
 
 if __name__ == '__main__':
+    # Index of this script
+    idx = int(sys.argv[1])
+    # Total number of scripts running
+    total = int(sys.argv[2])
     nabstracts = 100
     pmids = sample_trips_pmids(nabstracts)
-    save_abstracts(pmids)
-    for pmid in pmids:
-        print(pmid)
-        read_abstract(pmid)
+    pmids_to_read = pmids[idx::total]
+    save_abstracts(pmids_to_read)
+    port = 6200 + idx
+    for i, pmid in enumerate(pmids_to_read):
+        print('%d/%d: %s' % (i, len(pmids_to_read), pmid))
+        read_abstract(pmid, port)
