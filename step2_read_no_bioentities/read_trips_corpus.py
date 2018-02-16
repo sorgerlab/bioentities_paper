@@ -32,9 +32,10 @@ def save_abstracts(pmids):
             fh.write(abstract.encode('utf-8'))
 
 
-def read_abstract(pmid, port=6200):
+def read_abstract(pmid, port=6200, with_be=True):
     """Read a given PMID's abstract with TRIPS/DRUM and save the result."""
-    if os.path.exists('trips_abstracts/%s.ekb' % pmid):
+    path_prefix = 'trips_%s_be' % ('with' if with_be else 'no')
+    if os.path.exists(path_prefix + '/%s.ekb' % pmid):
         return
     with open('trips_abstracts/%s.txt' % pmid, 'rb') as fh:
         abstract = fh.read().decode('utf-8')
@@ -47,19 +48,22 @@ def read_abstract(pmid, port=6200):
     if not dr.extractions:
         print('No results from reading!')
     else:
-        with open('trips_abstracts/%s.ekb' % pmid, 'wb') as fh:
+        with open(path_prefix + '/%s.ekb' % pmid, 'wb') as fh:
             fh.write(dr.extractions[0].encode('utf-8'))
+
 
 if __name__ == '__main__':
     # Index of this script
     idx = int(sys.argv[1])
     # Total number of scripts running
     total = int(sys.argv[2])
+    # Read with or without Bioentities
+    with_be = False if len(sys.argv) < 4 or sys.argv[3] != 'be' else True
     nabstracts = 100
     pmids = sample_trips_pmids(nabstracts)
     pmids_to_read = pmids[idx::total]
-    save_abstracts(pmids_to_read)
+    #save_abstracts(pmids_to_read)
     port = 6200 + idx
     for i, pmid in enumerate(pmids_to_read):
         print('%d/%d: %s' % (i, len(pmids_to_read), pmid))
-        read_abstract(pmid, port)
+        read_abstract(pmid, port, with_be)
