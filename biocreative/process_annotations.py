@@ -2,99 +2,28 @@ import os
 from collections import namedtuple
 from collections import Counter, defaultdict
 import csv
-from indra.preassembler.grounding_mapper import default_grounding_map
+from indra.preassembler.grounding_mapper import load_grounding_map
 from xml.etree import ElementTree as ET
 import random
 from indra.sources import reach
 
 
-random.seed(1)
+def norm_text(text):
+    """Normalize text for case-insensitive matches."""
+    normed = text.replace('‐', '-')
+    normed = normed.upper()
+    return normed
 
-bioentities_path = os.environ['BIOENTITIES_HOME']
-annotations_file = 'BioIDtraining_2/annotations.csv'
 
 def sorted_ctr(items):
+    """Return a list of unique items in descending order by frequency."""
     ctr = Counter(items)
     return sorted([(k, v) for k, v in ctr.items()],
                   key=lambda x: x[1], reverse=True)
 
-BioIdRow = namedtuple('BioIdRow',
-                      ['thomas_article', 'doi', 'don_article', 'figure',
-                       'annot_id', 'paper_id', 'first_left', 'last_right',
-                       'length', 'byte_length', 'left_alphanum', 'text',
-                       'right_alphanum', 'obj', 'overlap', 'identical_span',
-                       'overlap_label_count'])
 
-# Column indices in the annotations.csv file
-TEXT_COL = 11
-OBJ_COL = 13
-
-mappings = []
-bioidrows = []
-
-# Process the annotations CSV file
-with open(annotations_file, 'rt') as f:
-    csv_reader = csv.reader(f, delimiter=',')
-    # Skip the header row
-    next(csv_reader)
-    for row in csv_reader:
-        text = row[TEXT_COL]
-        # Split the obj field by the pipe character for multiple entries
-        objs = []
-        for obj in row[OBJ_COL].split('|'):
-            # Split each mapping into namespace and ID on the : character
-            obj = tuple([x.strip() for x in obj.strip().split(':', maxsplit=1)])
-            # Unfortunately the Cellosaurus annotations don't have an explicit
-            # namespace, so we add one for completeness
-            if len(obj) < 2:
-                assert(obj[0].startswith('CVCL'))
-                obj = ('Cellosaurus', obj[0])
-            objs.append(obj)
-        mapping = (text, tuple(objs))
-        mappings.append(mapping)
-        row[OBJ_COL] = mapping
-        bioidrow = BioIdRow(*row)
-        bioidrows.append(bioidrow)
-
-namespace_list = [mapping[0] for text, mapping_list in mappings
-                             for mapping in mapping_list]
-namespaces_ctr = sorted_ctr(namespace_list)
-
-# Find exact matches between text entries and grounding map
-matches = defaultdict(list)
-match_count = 0
-for text, mapping_list in mappings:
-    if text in default_grounding_map:
-        match_count += 1
-        matches[text].append(frozenset(mapping_list))
-
-for text, mapping_list in matches.items():
-    matches[text] = Counter(mapping_list)
-
-# Sort text instances mapped to namespace 'protein' and 'gene'
-gp_texts = [text for text, mapping_list in mappings
-                 for mapping in mapping_list
-                 if mapping[0] in ('protein', 'gene', 'NCBI gene', 'Uniprot')]
-gp_texts_ctr = sorted_ctr(gp_texts)
-
-gp_rows = [row for row in bioidrows
-               for mapping in row.obj[1]
-               if mapping[0] in ('protein', 'gene', 'NCBI gene', 'Uniprot')]
-random.shuffle(gp_rows)
-
-
-html = """
-<html>
-<head>
-<meta charset="UTF-8" />
-<title>Biocreative VI annotations for curation</title></head>
-<body>
-<table border=1>
-<tr>
-<th>Text</th><th>In BE?</th><th>Mappings</th><th>Caption text</th>
-</tr>
-"""
 def format_id(ns, id):
+    """Format a namespace/ID pair for display and curation."""
     label = '%s:%s' % (ns, id)
     label = label.replace(' ', '_')
     if ns == 'Uniprot':
@@ -105,50 +34,164 @@ def format_id(ns, id):
         url = None
     return (label, url)
 
-for ann in gp_rows[0:100]:
-    in_bioent = '<mark>False</mark>'
-    if ann.text in default_grounding_map:
-        in_bioent = 'True'
-    xml_path = os.path.join('BioIDtraining_2/caption_bioc',
-                            ann.don_article + '.xml')
-    with open(xml_path, 'rt') as f:
-        tree = ET.fromstring(f.read())
-    docs = tree.findall('./document')
-    for doc in docs:
-        pmc_id = doc.find('./infon[@key="pmc_id"]').text
-        figure_id = doc.find('./infon[@key="sourcedata_figure_dir"]').text
-        if pmc_id == ann.don_article and figure_id == ann.figure:
-            #print("--------------------------------")
-            #print(pmc_id)
-            #print(figure_id)
-            passage = doc.find('./passage/text').text
-            fl = int(ann.first_left)
-            lr = int(ann.last_right)
-            hl_passage = ('%s<mark>%s</mark>%s' %
-                          (passage[0:fl], passage[fl:lr], passage[lr:]))
-            #print("Mapping: %s" % str(ann.obj))
-            #print()
-            #print(hl_passage)
-            #print("Processing with REACH")
-            #rp = reach.process_text(passage)
-    identifier_links = '<ul>\n'
-    for ns, id in ann.obj[1]:
-        label, url = format_id(ns, id)
-        if url is None:
-            entry = '<li>%s</li>\n' % label
+
+BioIdRow = namedtuple('BioIdRow',
+                      ['thomas_article', 'doi', 'don_article', 'figure',
+                       'annot_id', 'paper_id', 'first_left', 'last_right',
+                       'length', 'byte_length', 'left_alphanum', 'text',
+                       'right_alphanum', 'obj', 'overlap', 'identical_span',
+                       'overlap_label_count'])
+
+
+def process_annotation_file(filename):
+    """Process the annotations file into a list of BioIDRow objects."""
+    # Column indices in the annotations.csv file
+    TEXT_COL = 11
+    OBJ_COL = 13
+
+    mappings = []
+    bioidrows = []
+    # Process the annotations CSV file
+    with open(annotations_file, 'rt') as f:
+        csv_reader = csv.reader(f, delimiter=',')
+        # Skip the header row
+        next(csv_reader)
+        for row in csv_reader:
+            text = row[TEXT_COL]
+            # Split the obj field by the pipe character for multiple entries
+            objs = []
+            for obj in row[OBJ_COL].split('|'):
+                # Split each mapping into namespace and ID on the : character
+                obj = tuple([x.strip()
+                             for x in obj.strip().split(':', maxsplit=1)])
+                # Unfortunately the Cellosaurus annotations don't have an
+                # explicit namespace, so we add one for completeness
+                if len(obj) < 2:
+                    assert(obj[0].startswith('CVCL'))
+                    obj = ('Cellosaurus', obj[0])
+                objs.append(obj)
+            mapping = (text, tuple(objs))
+            mappings.append(mapping)
+            row[OBJ_COL] = mapping
+            bioidrow = BioIdRow(*row)
+            bioidrows.append(bioidrow)
+    return bioidrows
+
+
+def write_curation_file(annotations, be_strings, output_file):
+    # Header for the HTML file
+    html = """
+    <html>
+    <head>
+    <meta charset="UTF-8" />
+    <title>Biocreative VI annotations for curation</title></head>
+    <body>
+    <table border=1>
+    <tr>
+    <th>ID</th><th>Text</th><th>In BE?</th><th>Mappings</th>
+    <th>Caption text</th>
+    </tr>
+    """
+    for ix, ann in enumerate(annotations[0:100]):
+        ix += 1
+        in_bioent = 'False'
+        # Check if this text is matched in the grounding map
+        if norm_text(ann.text) in be_strings_norm:
+            in_bioent = 'True'
+        # Get the caption text for this annotation
+        xml_path = os.path.join('BioIDtraining_2/caption_bioc',
+                                ann.don_article + '.xml')
+        with open(xml_path, 'rt') as f:
+            tree = ET.fromstring(f.read())
+        docs = tree.findall('./document')
+        for doc in docs:
+            pmc_id = doc.find('./infon[@key="pmc_id"]').text
+            figure_id = doc.find('./infon[@key="sourcedata_figure_dir"]').text
+            if pmc_id == ann.don_article and figure_id == ann.figure:
+                passage = doc.find('./passage/text').text
+                fl = int(ann.first_left)
+                lr = int(ann.last_right)
+                hl_passage = ('%s<mark>%s</mark>%s' %
+                              (passage[0:fl], passage[fl:lr], passage[lr:]))
+        # Add hyperlinks to grounding
+        identifier_links = '<ul>\n'
+        for ns, id in ann.obj[1]:
+            label, url = format_id(ns, id)
+            if url is None:
+                entry = '<li>%s</li>\n' % label
+            else:
+                entry = '<li><a href="%s">%s</a></li>\n' % (url, label)
+            identifier_links += entry
+        identifier_links += '</ul>\n'
+        # Add the row to the table
+        tr = ('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>\n' %
+              (ix, ann.text, in_bioent, identifier_links, hl_passage))
+        html += tr
+    html += "</body></html>"
+
+    with open('ann_sample.html', 'wt', encoding='utf8') as f:
+        f.write(html)
+
+
+def filter_to_namespaces(annotations, namespaces):
+    """Filter annotations to those grounded to one of the given namespaces."""
+    filt = []
+    for ann in annotations:
+        gene_protein = False
+        for mapping in ann.obj[1]:
+            if mapping[0] in namespaces:
+                gene_protein = True
+        if gene_protein:
+            filt.append(ann)
+    return filt
+
+
+def process_gene_prefixes(filename):
+    prefixes = set()
+    with open(filename, 'rt') as f:
+        csvreader = csv.reader(f)
+        for row in csvreader:
+            if row[1] == 'experimental context':
+                text = row[0]
+                text = text.replace('{Gene name}', '')
+                text = text.replace('-', '')
+                text = text.strip()
+                prefixes.add(text)
+    return list(prefixes)
+
+
+if __name__ == '__main__':
+    # Load and normalize the grounding map
+    bioentities_path = os.environ['BIOENTITIES_HOME']
+    be_grounding_map = load_grounding_map(os.path.join(bioentities_path,
+                                         'grounding_map.csv'))
+    be_strings_norm = [norm_text(text) for text in be_grounding_map]
+    be_gene_prefix_file = os.path.join(bioentities_path, 'gene_prefixes.csv')
+    norm_prefixes = process_gene_prefixes(be_gene_prefix_file)
+
+    # Get the annotation data
+    annotations_file = 'BioIDtraining_2/annotations.csv'
+    annotations = process_annotation_file(annotations_file)
+
+    # Filter the annotations to those identified as genes/proteins
+    gp_grounded = filter_to_namespaces(annotations, ('NCBI gene', 'Uniprot'))
+    gp_ungrounded = filter_to_namespaces(annotations, ('protein', 'gene'))
+    gp_ungrounded_non_exp = []
+    gp_ungrounded_exp = []
+    for ann in gp_ungrounded:
+        if ann.text in norm_prefixes:
+            gp_ungrounded_exp.append(ann)
         else:
-            entry = '<li><a href="%s">%s</a></li>\n' % (url, label)
-        identifier_links += entry
-    identifier_links += '</ul>\n'
-    tr = ('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>\n' %
-          (ann.text, in_bioent, identifier_links, hl_passage))
-    html += tr
-html += "</body></html>"
+            gp_ungrounded_non_exp.append(ann)
 
-with open('ann_sample.html', 'wt', encoding='utf8') as f:
-    f.write(html)
+    # Filter to only those that are either ungrounded or are grounded to
+    # multiple IDs
+    gp_fam = [ann for ann in gp_grounded if len(ann.obj[1]) > 1]
+    anns_for_curation = gp_fam + gp_ungrounded_non_exp
 
-#print("Matches:", match_count)
-#print(gp_texts)
-#print(namespaces)
-#print(mappings[0:20])
+    # Shuffle the annotations
+    random.seed(1)
+    random.shuffle(anns_for_curation)
+
+    write_curation_file(anns_for_curation, be_strings_norm, 'ann_sample.html')
+
