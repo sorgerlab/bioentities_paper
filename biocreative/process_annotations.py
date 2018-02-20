@@ -6,7 +6,7 @@ from indra.preassembler.grounding_mapper import load_grounding_map
 from xml.etree import ElementTree as ET
 import random
 from indra.sources import reach
-
+from indra.databases import hgnc_client, uniprot_client
 
 def norm_text(text):
     """Normalize text for case-insensitive matches."""
@@ -160,6 +160,23 @@ def process_gene_prefixes(filename):
     return list(prefixes)
 
 
+def filter_human(annotations):
+    filt = []
+    for ann in annotations:
+        non_human = False
+        for ns, id in ann.obj[1]:
+            if ns == 'NCBI gene':
+                hgnc_id = hgnc_client.get_hgnc_from_entrez(id)
+                if not hgnc_id:
+                    non_human = True
+            elif ns == 'Uniprot':
+                if not uniprot_client.is_human(id):
+                    non_human = True
+        if not non_human:
+            filt.append(ann)
+    return filt
+
+
 if __name__ == '__main__':
     # Load and normalize the grounding map
     bioentities_path = os.environ['BIOENTITIES_HOME']
@@ -175,6 +192,10 @@ if __name__ == '__main__':
 
     # Filter the annotations to those identified as genes/proteins
     gp_grounded = filter_to_namespaces(annotations, ('NCBI gene', 'Uniprot'))
+    # Filter to human
+    gp_human = filter_human(gp_grounded)
+    print("Grounded:", len(gp_grounded))
+    print("Grounded human:", len(gp_human))
     gp_ungrounded = filter_to_namespaces(annotations, ('protein', 'gene'))
     gp_ungrounded_non_exp = []
     gp_ungrounded_exp = []
@@ -186,8 +207,8 @@ if __name__ == '__main__':
 
     # Filter to only those that are either ungrounded or are grounded to
     # multiple IDs
-    gp_fam = [ann for ann in gp_grounded if len(ann.obj[1]) > 1]
-    anns_for_curation = gp_fam + gp_ungrounded_non_exp
+    #gp_fam = [ann for ann in gp_grounded if len(ann.obj[1]) > 1]
+    anns_for_curation = gp_human + gp_ungrounded_non_exp
 
     # Shuffle the annotations
     random.seed(1)
