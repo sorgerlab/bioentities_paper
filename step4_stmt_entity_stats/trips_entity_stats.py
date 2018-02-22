@@ -3,6 +3,7 @@ up dictionaries to represent the statistics of grounding raw text
 entities to database indentifiers."""
 import os
 import sys
+import csv
 import glob
 import pickle
 import random
@@ -15,11 +16,13 @@ def get_terms_with_grounding(tree):
     for term in terms:
         drum_terms = term.findall('drum-terms/drum-term')
         mnames = set(term.get('matched-name') for term in drum_terms)
+        uttnum = term.attrib['uttnum']
+        sentence = get_evidence_sentence(tree, uttnum)
         if not mnames:
             name = term.find('name')
             if name is None:
                 continue
-            term_grounding.append((term.find('name').text, []))
+            term_grounding.append((term.find('name').text, sentence, []))
             continue
         # Matched names, if there are more than one, are always just
         # trivially different e.g. PAI-1 vs PAI1 so we can just take
@@ -33,22 +36,54 @@ def get_terms_with_grounding(tree):
             name = drum_term.attrib.get('name')
             value = (dbname, dbid, name, score)
             values.append(value)
-        term_grounding.append((mname, values))
+        term_grounding.append((mname, sentence, values))
     return term_grounding
+
+
+def get_evidence_sentence(tree, uttnum):
+    sentence_tag = tree.find("input/sentences/sentence[@id='%s']" % uttnum)
+    if len(sentence_tag.text) > 200:
+        return sentence_tag.text[:200]
+    return sentence_tag.text
 
 
 def sample_spreadsheet(groundings, nsample, out_file):
     sampled = [random.choice(groundings) for _ in range(nsample)]
     with open(out_file, 'w') as fh:
-        fh.write('Text,Family,TopCorrect,AnyCorrect,Groundings\n')
-        for name, grounding in groundings:
+        fh.write('Text,Family,Evidence,TopCorrect,AnyCorrect,Groundings\n')
+        for name, sentence, grounding in sampled:
             match_strs = []
             for match in grounding:
                 match_str = '%s/%s/%s/%s' % match
                 match_strs.append(match_str)
-            fh.write('%s,,,,' % name)
+            if grounding:
+                fh.write('%s,,"%s",,,' % (name, sentence))
+            else:
+                fh.write('%s,,"%s",0,0,' % (name, sentence))
             fh.write(','.join(match_strs))
             fh.write('\n')
+
+
+def analyze_curated_spreadsheet(fname):
+    ncurated = 0
+    nfam = 0
+    nfam_top_correct = 0
+    nfam_any_correct = 0
+    with open(fname, 'r') as fh:
+        reader = csv.reader(fh)
+        for row in reader:
+            is_family, top_correct, any_correct = row[1], row[3], row[4]
+            if is_family in ('0', '1'):
+                ncurated += 1
+            if is_family == '1':
+                nfam += 1
+            if top_correct == '1':
+                nfam_top_correct += 1
+            if any_correct == '1':
+                nfam_any_correct += 1
+    print(ncurated, nfam, nfam_top_correct, nfam_any_correct)
+    print(100.0 * nfam_top_correct / nfam)
+    print(100.0 * nfam_any_correct / nfam)
 
 
 if __name__ == '__main__':
@@ -64,4 +99,5 @@ if __name__ == '__main__':
             term_grounding = get_terms_with_grounding(tree)
             all_term_grounding += term_grounding
     random.seed(1)
-    sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_with_be.csv')
+    #sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_with_be.csv')
+    sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_no_be.csv')
