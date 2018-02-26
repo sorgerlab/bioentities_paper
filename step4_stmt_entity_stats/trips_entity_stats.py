@@ -5,6 +5,7 @@ import os
 import sys
 import csv
 import glob
+import numpy
 import pickle
 import random
 import xml.etree.ElementTree as ET
@@ -65,6 +66,7 @@ def sample_spreadsheet(groundings, nsample, out_file):
 
 
 def analyze_curated_spreadsheet(fname):
+    ste = lambda k, n: numpy.sqrt(k/n * (1-k/n)/n)
     ncurated = 0
     nfam = 0
     nfam_top_correct = 0
@@ -82,8 +84,8 @@ def analyze_curated_spreadsheet(fname):
             if any_correct == '1':
                 nfam_any_correct += 1
     print(ncurated, nfam, nfam_top_correct, nfam_any_correct)
-    print(100.0 * nfam_top_correct / nfam)
-    print(100.0 * nfam_any_correct / nfam)
+    print(100.0 * nfam_top_correct / nfam, 100.0 * ste(nfam_top_correct, nfam))
+    print(100.0 * nfam_any_correct / nfam, 100.0 * ste(nfam_any_correct, nfam))
 
 
 if __name__ == '__main__':
