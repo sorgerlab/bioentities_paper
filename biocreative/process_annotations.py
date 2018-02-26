@@ -7,6 +7,7 @@ from xml.etree import ElementTree as ET
 import random
 from indra.sources import reach
 from indra.databases import hgnc_client, uniprot_client
+from indra.util import write_unicode_csv
 
 def norm_text(text):
     """Normalize text for case-insensitive matches."""
@@ -78,19 +79,59 @@ def process_annotation_file(filename):
     return bioidrows
 
 
-def write_curation_file(annotations, be_strings, output_file):
+def get_annotation_text(ann):
+    # Get the caption text for this annotation
+    xml_path = os.path.join('BioIDtraining_2/caption_bioc',
+                            ann.don_article + '.xml')
+    with open(xml_path, 'rt') as f:
+        tree = ET.fromstring(f.read())
+    docs = tree.findall('./document')
+    for doc in docs:
+        pmc_id = doc.find('./infon[@key="pmc_id"]').text
+        figure_id = doc.find('./infon[@key="sourcedata_figure_dir"]').text
+        if pmc_id == ann.don_article and figure_id == ann.figure:
+            passage = doc.find('./passage/text').text
+    return passage
+
+
+def write_curation_tsv(annotations, be_strings, output_file):
+    rows = []
+    for ix, ann in enumerate(annotations):
+        ix += 1
+        in_bioent = True if norm_text(ann.text) in be_strings_norm \
+                         else False
+        passage = get_annotation_text(ann)
+        fl = int(ann.first_left)
+        lr = int(ann.last_right)
+        hl_passage = ('%s[[[%s]]]%s' %
+                      (passage[0:fl], passage[fl:lr], passage[lr:]))
+        identifier_links = []
+        for ns, id in ann.obj[1]:
+            label, url = format_id(ns, id)
+            if url is None:
+                identifier_links.append(label)
+            else:
+                identifier_links.append(url)
+        identifier_links = ' | '.join(identifier_links)
+        doi = 'https://dx.doi.org/%s' % ann.doi
+        row = (ix, ann.text, str(in_bioent), identifier_links, doi, hl_passage)
+        rows.append(row)
+    write_unicode_csv(output_file, rows, delimiter='\t')
+
+
+def write_curation_html(annotations, be_strings, output_file):
     # Header for the HTML file
     html = """
-    <html>
-    <head>
-    <meta charset="UTF-8" />
-    <title>Biocreative VI annotations for curation</title></head>
-    <body>
-    <table border=1>
-    <tr>
-    <th>ID</th><th>Text</th><th>In BE?</th><th>Mappings</th>
-    <th>Caption text</th>
-    </tr>
+        <html>
+        <head>
+        <meta charset="UTF-8" />
+        <title>Biocreative VI annotations for curation</title></head>
+        <body>
+        <table border=1>
+        <tr>
+        <th>ID</th><th>Text</th><th>In BE?</th><th>Mappings</th>
+        <th>Caption text</th>
+        </tr>
     """
     for ix, ann in enumerate(annotations[0:100]):
         ix += 1
@@ -98,21 +139,12 @@ def write_curation_file(annotations, be_strings, output_file):
         # Check if this text is matched in the grounding map
         if norm_text(ann.text) in be_strings_norm:
             in_bioent = 'True'
-        # Get the caption text for this annotation
-        xml_path = os.path.join('BioIDtraining_2/caption_bioc',
-                                ann.don_article + '.xml')
-        with open(xml_path, 'rt') as f:
-            tree = ET.fromstring(f.read())
-        docs = tree.findall('./document')
-        for doc in docs:
-            pmc_id = doc.find('./infon[@key="pmc_id"]').text
-            figure_id = doc.find('./infon[@key="sourcedata_figure_dir"]').text
-            if pmc_id == ann.don_article and figure_id == ann.figure:
-                passage = doc.find('./passage/text').text
-                fl = int(ann.first_left)
-                lr = int(ann.last_right)
-                hl_passage = ('%s<mark>%s</mark>%s' %
-                              (passage[0:fl], passage[fl:lr], passage[lr:]))
+        # Get the annotation text
+        passage = get_annotation_text(ann)
+        fl = int(ann.first_left)
+        lr = int(ann.last_right)
+        hl_passage = ('%s<mark>%s</mark>%s' %
+                      (passage[0:fl], passage[fl:lr], passage[lr:]))
         # Add hyperlinks to grounding
         identifier_links = '<ul>\n'
         for ns, id in ann.obj[1]:
@@ -129,7 +161,7 @@ def write_curation_file(annotations, be_strings, output_file):
         html += tr
     html += "</body></html>"
 
-    with open('ann_sample.html', 'wt', encoding='utf8') as f:
+    with open(output_file, 'wt', encoding='utf8') as f:
         f.write(html)
 
 
@@ -205,8 +237,8 @@ if __name__ == '__main__':
         else:
             gp_ungrounded_non_exp.append(ann)
 
-    # Filter to only those that are either ungrounded or are grounded to
-    # multiple IDs
+    # Optional: filter to only those that are either ungrounded or are
+    # grounded to multiple IDs
     #gp_fam = [ann for ann in gp_grounded if len(ann.obj[1]) > 1]
     anns_for_curation = gp_human + gp_ungrounded_non_exp
 
@@ -214,5 +246,8 @@ if __name__ == '__main__':
     random.seed(1)
     random.shuffle(anns_for_curation)
 
-    write_curation_file(anns_for_curation, be_strings_norm, 'ann_sample.html')
+    #write_curation_html(anns_for_curation, be_strings_norm,
+    #                    'ann_sample_test.html')
+    write_curation_tsv(anns_for_curation, be_strings_norm,
+                      'ann_sample_test.tsv')
 
