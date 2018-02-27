@@ -98,8 +98,7 @@ def write_curation_tsv(annotations, be_strings, output_file):
     rows = []
     for ix, ann in enumerate(annotations):
         ix += 1
-        in_bioent = True if norm_text(ann.text) in be_strings_norm \
-                         else False
+        in_bioent = 1 if norm_text(ann.text) in be_strings_norm else 0
         passage = get_annotation_text(ann)
         fl = int(ann.first_left)
         lr = int(ann.last_right)
@@ -249,5 +248,5 @@ if __name__ == '__main__':
     #write_curation_html(anns_for_curation, be_strings_norm,
     #                    'ann_sample_test.html')
     write_curation_tsv(anns_for_curation, be_strings_norm,
-                      'ann_sample_test.tsv')
+                      'annotations_for_curation.tsv')
 
