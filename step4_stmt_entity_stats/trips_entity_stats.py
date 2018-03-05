@@ -71,6 +71,8 @@ def analyze_curated_spreadsheet(fname):
     nfam = 0
     nfam_top_correct = 0
     nfam_any_correct = 0
+    top_ncit = 0
+    top_be = 0
     with open(fname, 'r') as fh:
         reader = csv.reader(fh)
         for row in reader:
@@ -81,11 +83,23 @@ def analyze_curated_spreadsheet(fname):
                 nfam += 1
             if top_correct == '1':
                 nfam_top_correct += 1
+                if row[5].startswith('NCIT'):
+                    top_ncit += 1
+                if row[5].startswith('BE'):
+                    top_be += 1
             if any_correct == '1':
                 nfam_any_correct += 1
-    print(ncurated, nfam, nfam_top_correct, nfam_any_correct)
-    print(100.0 * nfam_top_correct / nfam, 100.0 * ste(nfam_top_correct, nfam))
-    print(100.0 * nfam_any_correct / nfam, 100.0 * ste(nfam_any_correct, nfam))
+    print('Curated: %d' % ncurated)
+    print('Top correct: mean=%.1f, ste=%.1f' %
+          (100.0 * nfam_top_correct / nfam,
+           100.0 * ste(nfam_top_correct, nfam)))
+    print('Any correct: mean=%.1f, ste=%.1f' %
+          (100.0 * nfam_any_correct / nfam,
+           100.0 * ste(nfam_any_correct, nfam)))
+    print('Top correct that is NCIT: %.1f' %
+          (100.0 * top_ncit / nfam_top_correct))
+    print('Top correct that is BE: %.1f' %
+          (100.0 * top_be / nfam_top_correct))
 
 
 if __name__ == '__main__':
