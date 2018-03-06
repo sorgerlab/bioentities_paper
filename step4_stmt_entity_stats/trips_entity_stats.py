@@ -115,5 +115,5 @@ if __name__ == '__main__':
             term_grounding = get_terms_with_grounding(tree)
             all_term_grounding += term_grounding
     random.seed(1)
-    #sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_with_be.csv')
-    sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_no_be.csv')
+    #sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_with_fplx.csv')
+    sample_spreadsheet(all_term_grounding, 1000, 'trips_entities_no_fplx.csv')

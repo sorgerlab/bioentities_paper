@@ -32,9 +32,9 @@ def save_abstracts(pmids):
             fh.write(abstract.encode('utf-8'))
 
 
-def read_abstract(pmid, port=6200, with_be=True):
+def read_abstract(pmid, port=6200, with_fplx=True):
     """Read a given PMID's abstract with TRIPS/DRUM and save the result."""
-    path_prefix = 'trips_%s_be' % ('with' if with_be else 'no')
+    path_prefix = 'trips_%s_be' % ('with' if with_fplx else 'no')
     if os.path.exists(path_prefix + '/%s.ekb' % pmid):
         return
     with open('trips_abstracts/%s.txt' % pmid, 'rb') as fh:
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     idx = int(sys.argv[1])
     # Total number of scripts running
     total = int(sys.argv[2])
-    # Read with or without Bioentities
-    with_be = False if len(sys.argv) < 4 or sys.argv[3] != 'be' else True
+    # Read with or without FamPlex
+    with_fplx = False if len(sys.argv) < 4 or sys.argv[3] != 'fplx' else True
     nabstracts = 100
     pmids = sample_trips_pmids(nabstracts)
     pmids_to_read = pmids[idx::total]
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     port = 6200 + idx
     for i, pmid in enumerate(pmids_to_read):
         print('%d/%d: %s' % (i, len(pmids_to_read), pmid))
-        read_abstract(pmid, port, with_be)
+        read_abstract(pmid, port, with_fplx)
