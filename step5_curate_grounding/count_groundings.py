@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 pf.set_fig_params()
 
-be_path = join('..', '..', '..', 'bioentities')
+be_path = join('..', '..', '..', 'famplex')
 
 # Open entities list
 be_entities = [row[0] for row in read_unicode_csv(join(be_path, 'entities.csv'))]
@@ -14,14 +14,14 @@ be_counts = dict([(be, 0) for be in be_entities])
 ns_list = []
 for row in read_unicode_csv(join(be_path, 'grounding_map.csv')):
     ns_list.append(row[1])
-    if row[1] == 'BE':
+    if row[1] == 'FPLX':
         be_counts[row[2]] += 1
-    assert 'BE' not in row[2:]
+    assert 'FPLX' not in row[2:]
 be_ctr = Counter(be_counts.values())
 
 ns_ctr = Counter(ns_list)
 print("%d grounding map entries total" % len(ns_list))
-print("%d entries for BE" % ns_ctr['BE'])
+print("%d entries for FPLX" % ns_ctr['FPLX'])
 
 # Plot
 plt.ion()

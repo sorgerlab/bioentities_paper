@@ -8,7 +8,7 @@ Step 1: Get Proteins->Genes->PMIDs
 - Run process_proteins.py
   - For each protein, get gene name.
   - output: signaling_genes.txt
-- Get genes identified in bioentities/relations.csv (which included
+- Get genes identified in famplex/relations.csv (which included
     families from BEL and from the Ras family).
   - Combine the gene lists together
   - output: combined_genes.txt.
@@ -19,11 +19,11 @@ Step 1: Get Proteins->Genes->PMIDs
   - Make set of unique PMIDs, save
   - output: combined_pids.txt
 
-Step 2: Build REACH without Bioentities and Read PMIDs
+Step 2: Build REACH without FamPlex and Read PMIDs
 
-- Build REACH, b4a284, without Bioentities (see email threads)
-- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_bioentities
-  - output: combined_genes_no_bioentities_stmts.pkl (pmid->stmts file, Python3)
+- Build REACH, b4a284, without FamPlex (see email threads)
+- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex
+  - output: combined_genes_no_famplex_stmts.pkl (pmid->stmts file, Python3)
 
 Step 3: Shuffle the PMIDs and subsample the data into two files
 - 80% of papers to training set, 20% of papers to test set

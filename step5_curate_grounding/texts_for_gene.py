@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     texts = agent_texts_with_grounding(stmts)
     #with open('../entities.csv', 'rt') as f:
-    #    bioents = [line.strip() for line in f.readlines()]
+    #    famplexes = [line.strip() for line in f.readlines()]
     def getp(kw):
         return get_keyword_matches(kw, texts, match_type='partial')
     def getr(kw):
@@ -34,17 +34,17 @@ if __name__ == '__main__':
     # 1. Update to get abstracts when text can't be obtained from Elsevier
     # 1. Update existing S3 REACH keys with new structure
     # 2. Recompile REACH per Mihai's instructions
-    # 3. Re-read papers with no Bioentities version
+    # 3. Re-read papers with no FamPlex version
     # 4. Get statements, partition randomly into 90% and 10% sets, by paper
     # 5. Plot top list of ungrounded entities
     # 6. Plot top list of entities, by frequency, noting misgrounded ones
     # 7. Estimate grounding error rate on all entities and all families
 
     # 8. Run curation procedure on 90% set:
-    #   - For each bioentity (of the 400 or so), and also for all of the
+    #   - For each famplex (of the 400 or so), and also for all of the
     #     families (complexes?) defined in Reactome, do a search of the texts
     #   - Dump out a text file with the candidate texts, csv-separated with
-    #     the BE identifier used to search
+    #     the FPLX identifier used to search
     #   - Add texts to grounding map for
 
     #

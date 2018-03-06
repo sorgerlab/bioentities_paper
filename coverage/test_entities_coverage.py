@@ -14,7 +14,7 @@ def get_coverage_stats(stmts):
     for stmt in stmts:
         for agent in stmt.agent_list():
             if agent is not None:
-                be_id = agent.db_refs.get('BE')
+                be_id = agent.db_refs.get('FPLX')
                 if be_id:
                     counts[be_id] += 1
     return counts
@@ -54,7 +54,7 @@ def plot_counts_by_entry(counts):
     plt.bar(xvals_rest, yvals_rest, color=pf.GREEN, linewidth=0)
     plt.xlim([0, len(names)])
     plt.ylabel('Number of times grounded to in test corpus')
-    plt.xlabel('Bioentities entries')
+    plt.xlabel('FamPlex entries')
     plt.yscale('log')
     ax = plt.gca()
     pf.format_axis(ax)
@@ -71,7 +71,7 @@ def plot_counts_by_entry(counts):
     plt.xlim([0, len(names)])
     plt.ylabel('Cumulative rel. frequency of times \n'
                'grounded to in test corpus')
-    plt.xlabel('Bioentities entries')
+    plt.xlabel('FamPlex entries')
     ax = plt.gca()
     pf.format_axis(ax)
     plt.subplots_adjust(left=0.19, bottom=0.11, top=0.93, right=0.95)
@@ -122,8 +122,8 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
                  align='center')
     tb = plt.bar(xticks, tops, bottom=numpy.array(middles)+numpy.array(bottoms),
                  color='#deebf7', align='center')
-    plt.legend((tb[0], mb[0], bb[0]), ('Top (Bioentities)',
-                                       'Middle (Bioentities)',
+    plt.legend((tb[0], mb[0], bb[0]), ('Top (FamPlex)',
+                                       'Middle (FamPlex)',
                                        'Bottom (specific gene)'),
                 loc='upper right', frameon=False, fontsize=pf.fontsize)
     plt.xticks(xticks, labels)
@@ -159,11 +159,11 @@ def plc_groundings(stmts, counts, hgnc_counts):
 
 
 if __name__ == '__main__':
-    fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
+    fname = '../step3_sample_training_test/famplex_test_stmts_mapped.pkl'
     with open(fname, 'rb') as fh:
         stmts = pickle.load(fh)
 
-    entries = load_entity_list('../../../bioentities/entities.csv')
+    entries = load_entity_list('../../../famplex/entities.csv')
 
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)

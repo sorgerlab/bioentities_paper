@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     filename = '../step3_sample_training_test/%s.pkl' % \
             ('training_pmid_stmts' if mode == 'training' else \
-            'bioentities_test_stmts_mapped')
+             'famplex_test_stmts_mapped')
     with open(filename, 'rb') as f:
         stmts = pickle.load(f)
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # Get 10000 randomly selected agents from the full statement list
     out_file = 'training_agents_sample.csv' if mode == 'training' else \
-        'test_agents_with_be_sample.csv'
+        'test_agents_with_fplx_sample.csv'
     gm.raw_agent_texts(stmts, 10000, out_file)
 
     plot_prefix = 'training' if mode == 'training' else 'test_with_be'
