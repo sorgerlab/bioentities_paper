@@ -129,7 +129,7 @@ def write_curation_html(annotations, be_strings, output_file):
         <body>
         <table border=1>
         <tr>
-        <th>ID</th><th>Text</th><th>In BE?</th><th>Mappings</th>
+        <th>ID</th><th>Text</th><th>In FPLX?</th><th>Mappings</th>
         <th>Caption text</th>
         </tr>
     """
@@ -242,19 +242,19 @@ if __name__ == '__main__':
     print("Grounded gene/protein:", num_pct(len(gp_grounded)))
     print("Grounded human gene/protein:", num_pct(len(gp_human)))
     print("Ungrounded gene/protein (total): ", num_pct(len(gp_ungrounded)))
-    print("Ungrounded gene/protein in BE prefixes: ",
+    print("Ungrounded gene/protein in FPLX prefixes: ",
           num_pct(len(gp_ungrounded_exp)))
-    print("Ungrounded gene/protein not in BE prefixes: ",
+    print("Ungrounded gene/protein not in FPLX prefixes: ",
           num_pct(len(gp_ungrounded_non_exp)))
 
     # 1. Automatically identify families with multiple groundings, and compare
-    #    against Bioentities
+    #    against FamPlex
     # Identify subset with multiple groundings
     gp_multi_grounding = [ann for ann in gp_human
                           if len(ann.obj[1]) > 1 and
                             not (len(ann.obj[1]) == 2 and
                                  len(set([ns for ns, id in ann.obj[1]])) > 1)]
-    # Next, identify which of these can be matched to Bioentities
+    # Next, identify which of these can be matched to FamPlex
     automated_eval_results = {'in_be': [], 'not_in_be': []}
     for ann in gp_multi_grounding:
         if norm_text(ann.text) in be_strings_norm:
@@ -262,8 +262,8 @@ if __name__ == '__main__':
         else:
             automated_eval_results['not_in_be'].append(ann)
     print("Annotations with multiple groundings: %d" % len(gp_multi_grounding))
-    print("        in BE:", num_pct(len(automated_eval_results['in_be'])))
-    print("    NOT in BE:", num_pct(len(automated_eval_results['not_in_be'])))
+    print("        in FPLX:", num_pct(len(automated_eval_results['in_be'])))
+    print("    NOT in FPLX:", num_pct(len(automated_eval_results['not_in_be'])))
     print("Pct: %s" % (round(100 * len(automated_eval_results['in_be']) /
                              len(gp_multi_grounding), 1)))
 
