@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # Download and prcess output for each PMID and update dicts of entities
     for i, pmid in enumerate(pmids):
         # Get REACH JSON string from S3 for given PMID
-        reach_json = s3_client.get_reader_output('reach_no_bioentities', pmid)
+        reach_json = s3_client.get_reader_output('reach_no_famplex', pmid)
         if not reach_json:
             continue
         # Extract the entities from the JSON and update dicts

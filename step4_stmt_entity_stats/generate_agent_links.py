@@ -18,9 +18,9 @@ if __name__ == '__main__':
         sys.exit()
 
     sample_file = 'training_agents_sample_curated.csv' if mode == 'training' \
-        else 'test_agents_with_be_sample.csv'
+        else 'test_agents_with_fplx_sample.csv'
     out_file = 'training_agents_sample_links.html' if mode == 'training' \
-            else 'test_agents_with_be_sample.html'
+            else 'test_agents_with_fplx_sample.html'
 
     with open(sample_file, 'r') as fh1, open(out_file, 'w') as fh:
         reader = csv.reader(fh1)

@@ -7,7 +7,7 @@ from matplotlib_venn import venn3
 from matplotlib.patches import Circle
 from util import *
 
-bepath = '../../../../bioentities'
+bepath = '../../../../famplex'
 
 def find_db_mappings(entity, equivalences):
     dbs = []
@@ -44,11 +44,11 @@ def plot_venn_diagram(group_entries, missing):
     ax.text(center_missing[0], center_missing[1], str(missing))
     plt.xlim((-1, 1))
     pf.format_axis(ax)
-    plt.savefig('bioentities_mapping.pdf')
+    plt.savefig('famplex_mapping.pdf')
     return v3
 
 if __name__ == '__main__':
-    # Read all entities in Bioentities
+    # Read all entities in FamPlex
     entities_file = os.path.join(bepath, 'entities.csv')
     entities = load_entity_list(entities_file)
     # Read equivalence table

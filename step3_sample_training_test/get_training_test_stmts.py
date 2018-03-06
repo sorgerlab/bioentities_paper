@@ -2,8 +2,8 @@ import random
 import pickle
 
 # Load dict of PMIDs->statements
-with open('../step2_read_no_bioentities/'
-          'combined_genes_no_bioentities_stmts.pkl', 'rb') as f:
+with open('../step2_read_no_famplex/'
+          'combined_genes_no_famplex_stmts.pkl', 'rb') as f:
     print("Loading statements")
     pmid_stmts = pickle.load(f)
 

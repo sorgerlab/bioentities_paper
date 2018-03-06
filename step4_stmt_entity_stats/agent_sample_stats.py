@@ -10,8 +10,8 @@ import indra.tools.assemble_corpus as ac
 from indra.preassembler import grounding_mapper as gm
 from indra.util import write_unicode_csv, plot_formatting as pf
 
-with_be_label = 'With BE'
-without_be_label = 'Without BE'
+with_fplx_label = 'With BE'
+without_fplx_label = 'Without BE'
 
 def make_ungrounded_stats():
     """Return statistics of ungrounded entities for plotting."""
@@ -39,7 +39,7 @@ def make_ungrounded_stats():
         agent_counts = [t[1] for t in agents]
         return agent_counts
 
-    fname = '../step3_sample_training_test/bioentities_test_stmts_mapped.pkl'
+    fname = '../step3_sample_training_test/famplex_test_stmts_mapped.pkl'
     stmts = ac.load_statements(fname)
     allu_test, anyu_test = get_ungrounded_stats(stmts)
     counts_test = get_agent_counts(stmts)
@@ -69,7 +69,7 @@ def plot_ungrounded_stats(allu_test, anyu_test, allu_train, anyu_train):
     ax = plt.gca()
     pf.format_axis(ax)
     plt.subplots_adjust(left=0.17, bottom=0.14, top=0.94, right=0.93)
-    plt.legend((btrain, btest), (without_be_label, with_be_label),
+    plt.legend((btrain, btest), (without_fplx_label, with_fplx_label),
                loc='upper left', frameon=False, fontsize=pf.fontsize)
     plt.savefig('ungrounded_stats.pdf')
 
@@ -181,7 +181,7 @@ def combined_graph(results):
                ('Protein/\ngene', 'Family/\ncomplex'))
     plt.ylabel('Grounding accuracy')
     pf.format_axis(ax, tick_padding=3)
-    plt.legend((befh, afth), (without_be_label, with_be_label),
+    plt.legend((befh, afth), (without_fplx_label, with_fplx_label),
                loc='upper right',
                frameon=False, fontsize=pf.fontsize)
     plt.subplots_adjust(left=0.22, bottom=0.15, top=0.94, right=0.94)
@@ -224,8 +224,8 @@ def to_latex_table(rows):
         \caption{{\bf Table caption here.}}
         \resizebox{\textwidth}{!}{%%
         \begin{tabular}{%s}
-        & \multicolumn{4}{c}{\textbf{No Bioentities}} & &
-          \multicolumn{4}{c}{\textbf{With Bioentities}} \\
+        & \multicolumn{4}{c}{\textbf{No FamPlex}} & &
+          \multicolumn{4}{c}{\textbf{With FamPlex}} \\
         %s \\ \cline{2-5}\cline{7-10}
         """ % (table_format_str, header_row_str))
     for row in rows[1:]:
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     plt.ion()
     family_cats = ('F', 'C', 'X')
     filenames = {'training': 'training_agents_sample_curated.csv',
-                 'test': 'test_agents_with_be_sample_curated.csv'}
+                 'test': 'test_agents_with_fplx_sample_curated.csv'}
     file_keys = ['training', 'test']
 
     results = {}
@@ -265,6 +265,6 @@ if __name__ == '__main__':
 
     plot_ungrounded_stats(*ug_stats[:4])
     plot_ungrounded_frequencies(ug_stats[4:],
-                                (without_be_label, with_be_label),
+                                (without_fplx_label, with_fplx_label),
                                 (pf.ORANGE, pf.GREEN),
                                 'ungrounded_frequencies.pdf')
