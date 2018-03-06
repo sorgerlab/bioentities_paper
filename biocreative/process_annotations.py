@@ -1,13 +1,14 @@
 import os
-from collections import namedtuple
-from collections import Counter, defaultdict
 import csv
-from indra.preassembler.grounding_mapper import load_grounding_map
-from xml.etree import ElementTree as ET
 import random
+from xml.etree import ElementTree as ET
+from collections import namedtuple, Counter, defaultdict
+from matplotlib import pyplot as plt
 from indra.sources import reach
 from indra.databases import hgnc_client, uniprot_client
-from indra.util import write_unicode_csv
+from indra.util import write_unicode_csv, plot_formatting as pf
+from indra.preassembler.grounding_mapper import load_grounding_map
+
 
 def norm_text(text):
     """Normalize text for case-insensitive matches."""
@@ -221,12 +222,11 @@ if __name__ == '__main__':
     annotations_file = 'BioIDtraining_2/annotations.csv'
     annotations = process_annotation_file(annotations_file)
 
-    # Filter the annotations to those identified as genes/proteins
+    # Filter the annotations to those identified as human genes/proteins
     gp_grounded = filter_to_namespaces(annotations, ('NCBI gene', 'Uniprot'))
-    # Filter to human
     gp_human = filter_human(gp_grounded)
-    print("Grounded:", len(gp_grounded))
-    print("Grounded human:", len(gp_human))
+
+    # Separately filter to ungrounded genes and proteins
     gp_ungrounded = filter_to_namespaces(annotations, ('protein', 'gene'))
     gp_ungrounded_non_exp = []
     gp_ungrounded_exp = []
@@ -235,18 +235,49 @@ if __name__ == '__main__':
             gp_ungrounded_exp.append(ann)
         else:
             gp_ungrounded_non_exp.append(ann)
+    def num_pct(num):
+        return '%s (%.2f %%)' % (num, 100 * num / len(annotations))
 
-    # Optional: filter to only those that are either ungrounded or are
-    # grounded to multiple IDs
-    #gp_fam = [ann for ann in gp_grounded if len(ann.obj[1]) > 1]
+    print("All: ", num_pct(len(annotations)))
+    print("Grounded gene/protein:", num_pct(len(gp_grounded)))
+    print("Grounded human gene/protein:", num_pct(len(gp_human)))
+    print("Ungrounded gene/protein (total): ", num_pct(len(gp_ungrounded)))
+    print("Ungrounded gene/protein in BE prefixes: ",
+          num_pct(len(gp_ungrounded_exp)))
+    print("Ungrounded gene/protein not in BE prefixes: ",
+          num_pct(len(gp_ungrounded_non_exp)))
+
+    # 1. Automatically identify families with multiple groundings, and compare
+    #    against Bioentities
+    # Identify subset with multiple groundings
+    gp_multi_grounding = [ann for ann in gp_human
+                          if len(ann.obj[1]) > 1 and
+                            not (len(ann.obj[1]) == 2 and
+                                 len(set([ns for ns, id in ann.obj[1]])) > 1)]
+    # Next, identify which of these can be matched to Bioentities
+    automated_eval_results = {'in_be': [], 'not_in_be': []}
+    for ann in gp_multi_grounding:
+        if norm_text(ann.text) in be_strings_norm:
+            automated_eval_results['in_be'].append(ann)
+        else:
+            automated_eval_results['not_in_be'].append(ann)
+    print("Annotations with multiple groundings: %d" % len(gp_multi_grounding))
+    print("        in BE:", num_pct(len(automated_eval_results['in_be'])))
+    print("    NOT in BE:", num_pct(len(automated_eval_results['not_in_be'])))
+    print("Pct: %s" % (round(100 * len(automated_eval_results['in_be']) /
+                             len(gp_multi_grounding), 1)))
+
+    texts = sorted_ctr([row.text
+                        for row in automated_eval_results['not_in_be']])
+    write_unicode_csv('automated_eval_unmatched_texts_to_curate.tsv', texts,
+                      delimiter='\t')
+
     anns_for_curation = gp_human + gp_ungrounded_non_exp
 
     # Shuffle the annotations
     random.seed(1)
     random.shuffle(anns_for_curation)
 
-    #write_curation_html(anns_for_curation, be_strings_norm,
-    #                    'ann_sample_test.html')
     write_curation_tsv(anns_for_curation, be_strings_norm,
                       'annotations_for_curation.tsv')
 
