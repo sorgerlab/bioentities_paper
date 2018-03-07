@@ -35,7 +35,7 @@ if __name__ == '__main__':
         'test_agents_with_fplx_sample.csv'
     gm.raw_agent_texts(stmts, 10000, out_file)
 
-    plot_prefix = 'training' if mode == 'training' else 'test_with_be'
+    plot_prefix = 'training' if mode == 'training' else 'test_with_fplx'
     rrs.report_grounding(stmts, bin_interval=100,
                          plot_prefix=plot_prefix)
 
