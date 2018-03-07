@@ -10,8 +10,8 @@ import indra.tools.assemble_corpus as ac
 from indra.preassembler import grounding_mapper as gm
 from indra.util import write_unicode_csv, plot_formatting as pf
 
-with_fplx_label = 'With BE'
-without_fplx_label = 'Without BE'
+with_fplx_label = 'With FamPlex'
+without_fplx_label = 'Without FamPlex'
 
 def make_ungrounded_stats():
     """Return statistics of ungrounded entities for plotting."""
@@ -82,7 +82,7 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
     bin_starts_list = []
     for counts in counts_list:
         freq_dist = []
-        bin_starts = range(0, len(counts), bin_interval)
+        bin_starts = list(range(0, len(counts), bin_interval))
         bin_starts_list.append(bin_starts)
         for bin_start_ix in bin_starts:
             bin_end_ix = bin_start_ix + bin_interval
@@ -94,7 +94,7 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
         fracs_total = np.cumsum(freq_dist)
         fracs_total_list.append(fracs_total)
 
-    fig = plt.figure(figsize=(2.1, 2.2), dpi=300)
+    fig = plt.figure(figsize=(2.3, 2.2), dpi=300)
     plt.ion()
     ax = fig.gca()
     for i, (bin_starts, fracs_total) in \
@@ -107,6 +107,8 @@ def plot_ungrounded_frequencies(counts_list, labels, colors, plot_filename):
     labels.append('Uniform distribution')
     pf.format_axis(ax)
     ax.legend(labels, loc='lower right', frameon=False, fontsize=pf.fontsize)
+    plt.xlim([0,1])
+    plt.ylim([0,1])
     plt.subplots_adjust(left=0.18, bottom=0.15, right=0.96, top=0.92)
     ax.set_xlabel('String rank (normalized)')
     ax.set_ylabel('Rel. freq. of occurrences')
@@ -121,7 +123,7 @@ def grounding_stats(data, plot=False):
     rows = []
     num_agents = len(data)
     if plot:
-        plt.figure(figsize=(2, 2), dpi=300)
+        plt.figure(figsize=(2.2, 2), dpi=300)
     for ix, cat in enumerate(cats):
         cat_rows = data[data.EntityType.apply(lambda et: et in cat)]
         cat_number = len(cat_rows)
@@ -135,8 +137,8 @@ def grounding_stats(data, plot=False):
         correct_pct_str = '%.1f' % correct_pct
         def stderr(k, n):
             return np.sqrt(((k/float(n)) * (1-(k/float(n)))) / float(n))
-        stderr_inc = 100 * stderr(cat_number - correct_number, num_agents)
-        stderr_corr = 100 * stderr(correct_number, num_agents)
+        stderr_inc = 100 * stderr(cat_number - correct_number, cat_number)
+        stderr_corr = 100 * stderr(correct_number, cat_number)
         rows.append((cat, cat_number, cat_pct, correct_number,
                      correct_pct, stderr_corr))
         if plot:
@@ -163,7 +165,7 @@ def combined_graph(results):
     fam_bef, fam_bef_err = results['training'][1][4:6]
     prot_aft, prot_aft_err = results['test'][0][4:6]
     fam_aft, fam_aft_err = results['test'][1][4:6]
-    plt.figure(figsize=(2, 2.2), dpi=300)
+    plt.figure(figsize=(2.8, 2.2), dpi=300)
     width = 0.3
     bef_color = pf.ORANGE
     aft_color = pf.GREEN

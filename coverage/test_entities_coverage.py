@@ -163,7 +163,7 @@ if __name__ == '__main__':
     with open(fname, 'rb') as fh:
         stmts = pickle.load(fh)
 
-    entries = load_entity_list('../../../famplex/entities.csv')
+    entries = load_entity_list('../../famplex/entities.csv')
 
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)
