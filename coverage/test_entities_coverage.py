@@ -118,6 +118,22 @@ def get_level_stats(entries, counts, hgnc_counts):
             middle_count = sum([counts.get(entry, 0) for entry in
                                group['middle']])
             multi_level_counts[entry] = (top_count, middle_count, bottom_count)
+
+    # Count the actual number of two-grounding / multi-grounding entries
+    two_grounded = 0
+    multi_grounded = 0
+    for k, v in two_level_counts.items():
+        if v[0] > 0 and v[1] > 0:
+            two_grounded += 1
+    for k, v in multi_level_counts.items():
+        if v[0] > 0 and v[1] > 0 and v[2] > 0:
+            multi_grounded += 1
+        else:
+            two_grounded += 1
+
+    print(('Top-level FamPlex entries with groundings a 2 levels: %d '
+           'and at least 3 levels: %d') % (two_grounded, multi_grounded))
+
     return two_level_counts, multi_level_counts
 
 
@@ -203,8 +219,10 @@ if __name__ == '__main__':
 
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)
+    # Quantify number of entries that are grounded to at multiple levels
     two_level_counts, multi_level_counts = \
         get_level_stats(entries, counts, hgnc_counts)
+
     """
     plc_groundings(stmts, counts, hgnc_counts)
     missing_entries = get_missing_entries(entries, counts)
