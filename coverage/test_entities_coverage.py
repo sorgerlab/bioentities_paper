@@ -85,6 +85,58 @@ def plot_counts_by_entry(counts):
                                       100* count / numpy.sum(counts_for_name)))
 
 
+def get_level_stats(entries, counts, hgnc_counts):
+    two_level_counts = {}
+    multi_level_counts = {}
+    for entry in entries:
+        uri = 'http://sorger.med.harvard.edu/indra/entities/%s' % entry
+        # If the entry has parents, we skip it (it will be added via its top
+        # level entry)
+        parents = eh.get_parents(uri)
+        if parents:
+            continue
+        # If the entry does not have any children, then obviously any
+        # grounding will be to the entry itself, so no level statistics
+        # are needed.
+        children = eh.get_children(uri)
+        if not children:
+            continue
+        # Make a level map
+        group = {'top': [entry], 'middle': [], 'bottom': []}
+        for child in children:
+            name = child.split('/')[-1]
+            if 'hgnc.symbol' in child:
+                group['bottom'].append(name)
+            else:
+                group['middle'].append(name)
+        top_count = sum([counts.get(entry, 0) for entry in group['top']])
+        bottom_count = sum([hgnc_counts.get(entry, 0) for entry in
+                            group['bottom']])
+        if not group['middle']:
+            two_level_counts[entry] = (top_count, bottom_count)
+        else:
+            middle_count = sum([counts.get(entry, 0) for entry in
+                               group['middle']])
+            multi_level_counts[entry] = (top_count, middle_count, bottom_count)
+
+    # Count the actual number of two-grounding / multi-grounding entries
+    two_grounded = 0
+    multi_grounded = 0
+    for k, v in two_level_counts.items():
+        if v[0] > 0 and v[1] > 0:
+            two_grounded += 1
+    for k, v in multi_level_counts.items():
+        if v[0] > 0 and v[1] > 0 and v[2] > 0:
+            multi_grounded += 1
+        else:
+            two_grounded += 1
+
+    print(('Top-level FamPlex entries with groundings a 2 levels: %d '
+           'and at least 3 levels: %d') % (two_grounded, multi_grounded))
+
+    return two_level_counts, multi_level_counts
+
+
 def get_stacks_groups(tops):
     groups = []
     for top in tops:
@@ -167,6 +219,11 @@ if __name__ == '__main__':
 
     counts = get_coverage_stats(stmts)
     hgnc_counts = get_hgnc_coverage_stats(stmts)
+    # Quantify number of entries that are grounded to at multiple levels
+    two_level_counts, multi_level_counts = \
+        get_level_stats(entries, counts, hgnc_counts)
+
+    """
     plc_groundings(stmts, counts, hgnc_counts)
     missing_entries = get_missing_entries(entries, counts)
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
@@ -175,4 +232,4 @@ if __name__ == '__main__':
     plt.ion()
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
     plot_counts_by_entry(counts)
-
+    """
