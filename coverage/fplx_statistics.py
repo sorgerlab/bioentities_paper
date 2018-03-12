@@ -5,9 +5,13 @@ from collections import Counter
 import matplotlib.pyplot as plt
 from util import *
 from indra.literature.pubmed_client import get_ids
+from indra.databases import uniprot_client
+
 
 entities = load_entity_list('../../famplex/entities.csv')
 relations = load_relationships('../../famplex/relations.csv')
+gmap = load_grounding_map('../../famplex/grounding_map.csv')
+gmap_reverse = load_gmap_reverse('../../famplex/grounding_map.csv')
 
 def num_at_levels():
     """Print number of FPLX entries at each level of relations."""
@@ -88,15 +92,48 @@ def top_level_depths():
 
 
 def num_citations():
+    cit_nums = {}
+    all_pmids = set()
     for entity in entities:
-        pmids = set()
         rel_par = [r for r in relations if
                    r[0][0] == 'FPLX' and r[0][1] == entity]
         if rel_par:
             continue
-        children = get_children(entity)
+        lexes = gmap_reverse.get(entity, set())
+        lexes.add(entity.replace('_', ' '))
+        children = get_children('FPLX', entity)
         for child_ns, child_name in children:
-            pmids |= set(get_ids(child_name)
+            if child_ns == 'FPLX':
+                lexes |= gmap_reverse.get(child_name)
+            elif child_ns == 'HGNC':
+                lexes.add(child_name)
+            elif child_ns == 'UP':
+                gene_name = uniprot_client.get_gene_name(child_name)
+                if gene_name:
+                    lexes.add(gene_name)
+        pmids = set()
+        for lex in lexes:
+            search_term = '%s[Text Word]' % lex
+            lex_pmids = get_ids(search_term, retmax=1000000)
+            pmids |= set(lex_pmids)
+        cit_nums[entity] = len(pmids)
+        all_pmids |= pmids
+        print('%s: %d' % (entity, len(pmids)))
+    cit_num_vals = list(cit_nums.values())
+    print('Number of citations: %.2f +/- %.2f, median: %d' %
+          (numpy.average(cit_num_vals), numpy.std(cit_num_vals),
+           numpy.median(cit_num_vals)))
+    print('All PMIDs found: %d' % len(all_pmids))
+
+    plt.ion()
+    plt.figure()
+    plt.hist(cit_num_vals, 50, color='gray')
+    plt.xlabel('Number of citations for FamPlex entry and its children')
+    plt.ylabel('Number of FamPlex entries')
+    plt.savefig('fplx_pmids_hist.pdf')
+    plt.show()
+
+    return cit_nums, all_pmids
 
 
 if __name__ == '__main__':
