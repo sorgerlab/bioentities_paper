@@ -33,3 +33,13 @@ def load_equivalences(filename):
             equivalences.append((row[0], row[1], row[2]))
     return equivalences
 
+
+def load_relationships(filename):
+    relationships = []
+    with open(filename) as f:
+        rows = read_csv(f, ',', '"')
+    for row in rows:
+        relationships.append(((row[0], row[1]), row[2], (row[3], row[4])))
+    return relationships
+
+
