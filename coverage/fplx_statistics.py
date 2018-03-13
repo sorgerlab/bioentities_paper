@@ -1,12 +1,16 @@
 """This script generates overall statistics describing the FamPlex resource."""
 
+import os
+import json
 import numpy
 from collections import Counter
+import matplotlib
+matplotlib.use('svg')
 import matplotlib.pyplot as plt
 from util import *
 from indra.literature.pubmed_client import get_ids
 from indra.databases import uniprot_client
-
+from indra.util import plot_formatting as pf
 
 entities = load_entity_list('../../famplex/entities.csv')
 relations = load_relationships('../../famplex/relations.csv')
@@ -62,12 +66,16 @@ def num_child_concepts():
     for entity in entities:
         children = get_children('FPLX', entity)
         child_nums.append(len(children))
+        if len(children) > 30:
+            print('%s: %s' % (entity, len(children)))
 
+    pf.set_fig_params()
     plt.ion()
-    plt.figure()
-    plt.hist(child_nums, 50, color='gray')
+    plt.figure(figsize=(2.5, 2.5), dpi=300)
+    plt.hist(child_nums, 60, color=pf.GREEN)
     plt.xlabel('Number of distinct children in FamPlex')
     plt.ylabel('Number of FamPlex entries')
+    pf.format_axis(plt.gca())
     plt.savefig('fplx_children_hist.pdf')
     plt.show()
 
@@ -105,7 +113,7 @@ def num_citations():
 
     cit_nums = {}
     all_pmids = set()
-    for entity in entities[:10]:
+    for entity in entities:
         # Lexicalizations for the entry itself
         lexes = gmap_reverse.get(entity, set())
         lexes.add(entity.replace('_', '-'))
@@ -134,21 +142,32 @@ def num_citations():
               (type, numpy.average(vals), numpy.std(vals),
                numpy.median(vals)))
         print('All PMIDs found: %d' % len(all_pmids))
+    with open('fplx_citations.json', 'w') as fh:
+        json.dump(cit_nums, fh, indent=1)
+    return cit_nums, all_pmids
 
+
+def plot_cit_nums():
+    if not os.path.exists('fplx_citations.json'):
+        num_citations()
+    with open('fplx_citations.json', 'r') as fh:
+        cit_nums = json.load(fh)
+    pf.set_fig_params()
     plt.ion()
-    plt.figure()
+    plt.figure(figsize=(3.5, 2.5), dpi=300)
     cit_sort = sorted(cit_nums.values(), key=lambda x: x[1], reverse=True)
     y1 = [c[0] for c in cit_sort]
     y2 = [c[1]-c[0] for c in cit_sort]
-    print(len(y1))
-    plt.bar(range(len(y1)), y1, color='blue')
-    plt.bar(range(len(y2)), y2, color='red', bottom=y1)
+    plt.bar(range(len(y1)), y1, color=pf.GREEN, label='Entry PMIDs')
+    plt.bar(range(len(y2)), y2, color=pf.ORANGE, bottom=y1, label='Children PMIDs')
     plt.ylabel('Number of citations')
     plt.xlabel('FamPlex entries')
-    plt.savefig('fplx_pmids_hist.pdf')
+    plt.yscale('log')
+    plt.xlim(0, len(y1))
+    plt.legend()
+    pf.format_axis(plt.gca())
+    plt.savefig('fplx_pmids_bar.pdf')
     plt.show()
-
-    return cit_nums, all_pmids
 
 
 def num_genes_covered():
@@ -165,3 +184,4 @@ if __name__ == '__main__':
     num_at_levels()
     num_child_concepts()
     top_level_depths()
+    plot_cit_nums()
