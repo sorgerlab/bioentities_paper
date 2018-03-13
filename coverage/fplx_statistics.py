@@ -92,15 +92,25 @@ def top_level_depths():
 
 
 def num_citations():
+    """Calculate the number of citations for each top-level entity and its
+    children."""
+    def get_pmids(search_terms):
+        pmids = set()
+        for lex in search_terms:
+            search_term = '%s' % lex
+            lex_pmids = set(get_ids(search_term, use_text_word=True,
+                                    retmax=1000000))
+            pmids |= lex_pmids
+        return pmids
+
     cit_nums = {}
     all_pmids = set()
-    for entity in entities:
-        rel_par = [r for r in relations if
-                   r[0][0] == 'FPLX' and r[0][1] == entity]
-        if rel_par:
-            continue
+    for entity in entities[:10]:
+        # Lexicalizations for the entry itself
         lexes = gmap_reverse.get(entity, set())
-        lexes.add(entity.replace('_', ' '))
+        lexes.add(entity.replace('_', '-'))
+        pmids_entry = get_pmids(lexes)
+        # Lexicalizations for the entries children
         children = get_children('FPLX', entity)
         for child_ns, child_name in children:
             if child_ns == 'FPLX':
@@ -111,29 +121,44 @@ def num_citations():
                 gene_name = uniprot_client.get_gene_name(child_name)
                 if gene_name:
                     lexes.add(gene_name)
-        pmids = set()
-        for lex in lexes:
-            search_term = '%s[Text Word]' % lex
-            lex_pmids = get_ids(search_term, retmax=1000000)
-            pmids |= set(lex_pmids)
-        cit_nums[entity] = len(pmids)
-        all_pmids |= pmids
-        print('%s: %d' % (entity, len(pmids)))
-    cit_num_vals = list(cit_nums.values())
-    print('Number of citations: %.2f +/- %.2f, median: %d' %
-          (numpy.average(cit_num_vals), numpy.std(cit_num_vals),
-           numpy.median(cit_num_vals)))
-    print('All PMIDs found: %d' % len(all_pmids))
+        pmids_inclusive = get_pmids(lexes)
+        cit_nums[entity] = (len(pmids_entry), len(pmids_inclusive))
+        all_pmids |= pmids_entry
+        all_pmids |= pmids_inclusive
+        print('%s: %d, %d' % (entity, len(pmids_entry), len(pmids_inclusive)))
+    cit_num_entry = [c[0] for c in cit_nums.values()]
+    cit_num_children = [c[1] for c in cit_nums.values()]
+    for type, vals in zip(['entry', 'children'],
+                          [cit_num_entry, cit_num_children]):
+        print('Number of citations (%s): %.2f +/- %.2f, median: %d' %
+              (type, numpy.average(vals), numpy.std(vals),
+               numpy.median(vals)))
+        print('All PMIDs found: %d' % len(all_pmids))
 
     plt.ion()
     plt.figure()
-    plt.hist(cit_num_vals, 50, color='gray')
-    plt.xlabel('Number of citations for FamPlex entry and its children')
-    plt.ylabel('Number of FamPlex entries')
+    cit_sort = sorted(cit_nums.values(), key=lambda x: x[1], reverse=True)
+    y1 = [c[0] for c in cit_sort]
+    y2 = [c[1]-c[0] for c in cit_sort]
+    print(len(y1))
+    plt.bar(range(len(y1)), y1, color='blue')
+    plt.bar(range(len(y2)), y2, color='red', bottom=y1)
+    plt.ylabel('Number of citations')
+    plt.xlabel('FamPlex entries')
     plt.savefig('fplx_pmids_hist.pdf')
     plt.show()
 
     return cit_nums, all_pmids
+
+
+def num_genes_covered():
+    """Calculate the overall number of specific genes that are covered by
+    FamPlex."""
+    genes_covered = set()
+    for source, rel, target in relations:
+        if source[0] in ('HGNC', 'UP'):
+            genes_covered.add(source[1])
+    print('Total number of unique genes covered: %d' % len(genes_covered))
 
 
 if __name__ == '__main__':
