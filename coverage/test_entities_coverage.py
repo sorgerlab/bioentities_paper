@@ -169,11 +169,11 @@ def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
     xticks = numpy.arange(len(stacks_groups))
     pf.set_fig_params()
     plt.figure(figsize=(3, 2.5), dpi=300)
-    bb = plt.bar(xticks, bottoms, color='#3182bd', align='center')
+    bb = plt.bar(xticks, bottoms, color='#3182bd', align='center', linewidth=1)
     mb = plt.bar(xticks, middles, bottom=bottoms, color='#9ecae1',
-                 align='center')
+                 align='center', linewidth=1)
     tb = plt.bar(xticks, tops, bottom=numpy.array(middles)+numpy.array(bottoms),
-                 color='#deebf7', align='center')
+                 color='#deebf7', align='center', linewidth=1)
     plt.legend((tb[0], mb[0], bb[0]), ('Top (FamPlex)',
                                        'Middle (FamPlex)',
                                        'Bottom (specific gene)'),
@@ -223,7 +223,6 @@ if __name__ == '__main__':
     two_level_counts, multi_level_counts = \
         get_level_stats(entries, counts, hgnc_counts)
 
-    """
     plc_groundings(stmts, counts, hgnc_counts)
     missing_entries = get_missing_entries(entries, counts)
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
@@ -232,4 +231,3 @@ if __name__ == '__main__':
     plt.ion()
     plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels)
     plot_counts_by_entry(counts)
-    """

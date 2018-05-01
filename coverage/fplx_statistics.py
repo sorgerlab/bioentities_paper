@@ -92,7 +92,10 @@ def top_level_depths():
                    r[0][0] == 'FPLX' and r[0][1] == entity]
         if rel_par:
             continue
-        levels.append(get_level(entity))
+        ent_level = get_level(entity)
+        levels.append(ent_level)
+        if ent_level == 4:
+            print('%s has 4 levels' % entity)
     level_counter = Counter(levels)
     for num_level, count in sorted(level_counter.items(), key=lambda x: x[0]):
         print('Top-level FamPlex entries with %d levels: %d' %
