@@ -3,7 +3,7 @@ import pickle
 
 # Load dict of PMIDs->statements
 with open('../step2_read_no_famplex/'
-          'combined_genes_no_famplex_stmts.pkl', 'rb') as f:
+          'combined_genes_no_bioentities_stmts.pkl', 'rb') as f:
     print("Loading statements")
     pmid_stmts = pickle.load(f)
 
@@ -19,6 +19,12 @@ training_fraction = 0.8
 partition = int(training_fraction * len(pmids))
 training_pmids = pmids[0:partition]
 test_pmids = pmids[partition:]
+with open('test_pmids.txt', 'w') as fh:
+    for pmid in test_pmids:
+        fh.write('%s\n' % pmid)
+with open('training_pmids.txt', 'w') as fh:
+    for pmid in training_pmids:
+        fh.write('%s\n' % pmid)
 
 # Get the statements for the training/test sets
 training_stmts = {pmid: pmid_stmts[pmid] for pmid in training_pmids}
