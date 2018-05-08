@@ -1,7 +1,12 @@
+"""This script obtains a list of all signaling genes from Reactome, and
+takes the union with those covered by FamPlex to get a gene list for
+literature search."""
+
 import pandas
 from indra.databases import uniprot_client
 
 def get_signaling_genes():
+    """Return a list of gene names that are in Reactome signaling pathways."""
     df = pandas.read_csv('signaling_proteins.tsv', sep='\t', index_col=None)
     gene_names = []
     for up_id in df['Identifier']:
@@ -24,6 +29,7 @@ def get_signaling_genes():
     return gene_names
 
 def get_relations_genes():
+    """Read the FamPlex relations table and get covered gene names."""
     df = pandas.read_csv('../relations.csv', index_col=None, header=None)
     gene_names = []
     for _, row in df.iterrows():

@@ -5,14 +5,14 @@ Step 1: Get Proteins->Genes->PMIDs
 - Download Reactome signaling proteins list
   (see step1_genes_pmids/signaling_proteins_readme.txt)
   - output: signaling_proteins.tsv
-- Run process_proteins.py
+- Run process_proteins.py to get a gene list for literature search
   - For each protein, get gene name.
   - output: signaling_genes.txt
-- Get genes identified in famplex/relations.csv (which included
+  - Get genes identified in famplex/relations.csv (which included
     families from BEL and from the Ras family).
-  - Combine the gene lists together
+  - Combine the two gene lists
   - output: combined_genes.txt.
-- get_pmids.py
+- Run get_pmids.py to get a list of PMIDs from gene list
   - For each gene in combined_genes.txt, get papers curated from Entrez gene.
   - Save dict mapping gene to list of papers
   - output: combined_genes_to_pmids.pkl
