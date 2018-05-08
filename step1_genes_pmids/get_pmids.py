@@ -1,6 +1,8 @@
-from indra.literature import pubmed_client
-import pickle
+"""This script obtains a list of PMIDs by running searches on PubMed."""
 import csv
+import pickle
+from indra.literature import pubmed_client
+
 
 if __name__ == '__main__':
     # Open the list of Reactome signaling genes
