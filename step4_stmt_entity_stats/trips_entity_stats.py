@@ -85,8 +85,9 @@ def analyze_curated_spreadsheet(fname):
                 nfam_top_correct += 1
                 if row[5].startswith('NCIT'):
                     top_ncit += 1
-                if row[5].startswith('BE'):
+                if row[5].startswith('FPLX'):
                     top_be += 1
+                    print(row[5:])
             if any_correct == '1':
                 nfam_any_correct += 1
     print('Curated: %d' % ncurated)

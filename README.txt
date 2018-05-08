@@ -19,17 +19,20 @@ Step 1: Get Proteins->Genes->PMIDs
   - Make set of unique PMIDs, save
   - output: combined_pids.txt
 
-Step 2: Build REACH without FamPlex and Read PMIDs
+Step 2: Build REACH without FamPlex and read PMIDs
 
-- Build REACH, b4a284, without FamPlex (see email threads)
-- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex
-  - output: combined_genes_no_famplex_stmts.pkl (pmid->stmts file, Python3)
+- Build REACH, b4a284, without FamPlex
+- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex (scripts not included)
+- output: combined_genes_no_famplex_stmts.pkl (the pickle file contains a dictionary
+  mapping each PMID to a list of Statements)
+
 
 Step 3: Shuffle the PMIDs and subsample the data into two files
 - 80% of papers to training set, 20% of papers to test set
 - get_training_test_stmts.py
   - output: training_pmid_stmts.pkl
   - output: test_pmid_stmts.pkl
+
 
 Step 4: stmt_entity_stats
 - Run get_agents_for_evaluation.py. Creates random sample of agents from

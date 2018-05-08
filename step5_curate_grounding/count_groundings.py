@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 pf.set_fig_params()
 
-be_path = join('..', '..', '..', 'famplex')
+be_path = join('..', '..', 'famplex')
 
 # Open entities list
 be_entities = [row[0] for row in read_unicode_csv(join(be_path, 'entities.csv'))]
