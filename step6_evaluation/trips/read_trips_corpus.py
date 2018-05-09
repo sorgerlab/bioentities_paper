@@ -10,7 +10,7 @@ from indra.sources.trips.drum_reader import DrumReader
 def sample_trips_pmids(nabstracts):
     """Return a list of PMIDs to read sampled randomly."""
     # Load dict of PMIDs->statements
-    with open('../step1_genes_pmids/combined_pmids.txt', 'r') as fh:
+    with open('../../step1_genes_pmids/combined_pmids.txt', 'r') as fh:
         pmids = [l.strip() for l in fh.readlines()]
 
     # Sort the PMIDs
