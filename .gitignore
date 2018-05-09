@@ -1,0 +1,10 @@
+*.pkl
+*.csv
+*.pyc
+*.pdf
+*.png
+*.txt
+*.sh
+*.zip
+*.json
+*.xml
