@@ -10,6 +10,7 @@ from util import *
 
 
 def get_coverage_stats(stmts):
+    """Return the number of times each FamPlex entry is grounded to."""
     counts = defaultdict(int)
     for stmt in stmts:
         for agent in stmt.agent_list():
@@ -21,6 +22,7 @@ def get_coverage_stats(stmts):
 
 
 def get_hgnc_coverage_stats(stmts):
+    """Return the number of times each HGNC gene is grounded to."""
     counts = defaultdict(int)
     for stmt in stmts:
         for agent in stmt.agent_list():
@@ -34,10 +36,13 @@ def get_hgnc_coverage_stats(stmts):
 
 
 def get_missing_entries(entries, counts):
+    """Return list of FamPlex entries that weren't grounded to at all."""
     return set(entries) - set(counts.keys())
 
 
 def plot_counts_by_entry(counts):
+    """Plot the absolute counts and cumulative counts of groundings to
+    FamPlex entries."""
     pf.set_fig_params()
     plt.figure(figsize=(2.5, 2.5), dpi=300)
     counts_ord = sorted(counts.items(), key=lambda x: x[1], reverse=True)
@@ -86,6 +91,8 @@ def plot_counts_by_entry(counts):
 
 
 def get_level_stats(entries, counts, hgnc_counts):
+    """Calculate statistics of FamPlex entries that are grounded to at multiple
+    levels of the hierarchy."""
     two_level_counts = {}
     multi_level_counts = {}
     for entry in entries:
@@ -138,6 +145,8 @@ def get_level_stats(entries, counts, hgnc_counts):
 
 
 def get_stacks_groups(tops):
+    """Return the entries at the various levels of the stack for a given list
+    of top-level FamPlex entries."""
     groups = []
     for top in tops:
         uri = 'http://sorger.med.harvard.edu/indra/entities/%s' % top
@@ -154,6 +163,9 @@ def get_stacks_groups(tops):
 
 
 def plot_stacks_groups(stacks_groups, counts, hgnc_counts, labels):
+    """Plot stacks of a given group (entries subsumed by a FamPlex entry
+    of interest showing statistics of number of groundings at various
+    levels of the hierarchy."""
     plt.figure
     tops = []
     middles = []
@@ -211,20 +223,30 @@ def plc_groundings(stmts, counts, hgnc_counts):
 
 
 if __name__ == '__main__':
+    # Load Statements from test corpus reading output with FamPlex
     fname = '../step3_sample_training_test/famplex_test_stmts_mapped.pkl'
     with open(fname, 'rb') as fh:
         stmts = pickle.load(fh)
 
+    # Load list of FamPlex entries
     entries = load_entity_list('../../famplex/entities.csv')
 
+    # Get FamPlex counts grounded to in Statements
     counts = get_coverage_stats(stmts)
+    # Get HGNC counts grounded to iun Statements
     hgnc_counts = get_hgnc_coverage_stats(stmts)
+
     # Quantify number of entries that are grounded to at multiple levels
     two_level_counts, multi_level_counts = \
         get_level_stats(entries, counts, hgnc_counts)
 
+    # Print specific statistics about PLC and its children being grounded to
     plc_groundings(stmts, counts, hgnc_counts)
+
+    # Get a list of entries that weren't grounded to at all 
     missing_entries = get_missing_entries(entries, counts)
+
+    # Plot statistics of grounding at various levels for some specific groups
     groups_to_plot = ['AMPK', 'G_protein', 'PPP2', 'PLC', 'Activin']
     stacks_groups = get_stacks_groups(groups_to_plot)
     labels = [g.replace('_', ' ') for g in groups_to_plot]
