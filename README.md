@@ -4,7 +4,6 @@ Scripts to reproduce results reported in FamPlex manuscript
 This repository is organized into six folders corresponding to each stage of
 constructing and evaluating the FamPlex resource.
 
-
 Step 1: Get list of genes and corresponding PMIDs
 -------------------------------------------------
 
@@ -28,9 +27,7 @@ Step 1: Get list of genes and corresponding PMIDs
 Step 2: Build REACH without FamPlex and read PMIDs
 --------------------------------------------------
 
-- Build REACH, b4a284, without FamPlex
-- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex
-(scripts not included)
+- Build REACH without FamPlex
 - output: combined_genes_no_famplex_stmts.pkl (the pickle file contains a dictionary
   mapping each PMID to a list of Statements)
 
@@ -41,6 +38,8 @@ Step 3: Shuffle the PMIDs and subsample the data into training and test sets
 - get_training_test_stmts.py
   - output: training_pmid_stmts.pkl
   - output: test_pmid_stmts.pkl
+  - output: training_pmids.txt
+  - output: test_pmids.txt
 
 Step 4: stmt_entity_stats
 -------------------------
@@ -61,7 +60,6 @@ Step 4: stmt_entity_stats
     - B: biological process
     - U: unknown/other
     - M: microRNA
-  - JAB curated rows 2-101; BMG 102-251; JAB 252-301 (row 1 is header)
 - For ease of curation, run generate_agent_links.py to create an HTML table
   to check groundings in different databases.
 - Same for test set.
