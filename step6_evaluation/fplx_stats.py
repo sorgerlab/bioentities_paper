@@ -41,6 +41,7 @@ def num_at_levels():
 
 
 def get_children(ns, id):
+    """Return the children of a given FamPlex entry."""
     all_children = set()
     for rel in relations:
         if rel[2][0] == ns and rel[2][1] == id:
@@ -50,6 +51,7 @@ def get_children(ns, id):
 
 
 def get_level(entry):
+    """Get the level at which a given FamPlex entry is in the hierarchy."""
     level = 1
     relevant_rels = [r for r in relations if r[2] == ('FPLX', entry)]
     for rel in relevant_rels:
@@ -61,7 +63,7 @@ def get_level(entry):
 
 
 def num_child_concepts():
-    """Statistics of number of child concepts for each entry."""
+    """Print statistics of number of child concepts for each entry."""
     child_nums = []
     for entity in entities:
         children = get_children('FPLX', entity)
@@ -151,6 +153,7 @@ def num_citations():
 
 
 def plot_cit_nums():
+    """Plot the histogram of citation numbers for each FamPlex entry."""
     if not os.path.exists('fplx_citations.json'):
         num_citations()
     with open('fplx_citations.json', 'r') as fh:
@@ -162,7 +165,8 @@ def plot_cit_nums():
     y1 = [c[0] for c in cit_sort]
     y2 = [c[1]-c[0] for c in cit_sort]
     plt.bar(range(len(y1)), y1, color=pf.GREEN, label='Entry PMIDs')
-    plt.bar(range(len(y2)), y2, color=pf.ORANGE, bottom=y1, label='Children PMIDs')
+    plt.bar(range(len(y2)), y2, color=pf.ORANGE, bottom=y1,
+            label='Children PMIDs')
     plt.ylabel('Number of citations')
     plt.xlabel('FamPlex entries')
     plt.yscale('log')
