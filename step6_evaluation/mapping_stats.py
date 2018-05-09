@@ -1,3 +1,6 @@
+"""This script generates statistics of mappings between FamPlex and other
+resources."""
+
 import os
 import sys
 import numpy
@@ -7,7 +10,7 @@ from matplotlib_venn import venn3
 from matplotlib.patches import Circle
 from util import *
 
-bepath = '../../../../famplex'
+fplx_path = '../../famplex'
 
 def find_db_mappings(entity, equivalences):
     dbs = []
@@ -33,7 +36,8 @@ def plot_venn_diagram(group_entries, missing):
     pf.set_fig_params()
     plt.figure(figsize=(4, 3))
     v3 = venn3(subsets=subsets, set_labels=('PFAM / InterPro / NextProt / GO',
-                                         'NCIT / MeSH', 'OpenBEL / Reactome'))
+                                            'NCIT / MeSH',
+                                            'OpenBEL / Reactome'))
     radius_missing = v3.radii[0] * numpy.sqrt(1.0*missing / len(subsets[0]))
     center_missing = [0.8, 0]
     circle_missing = Circle(center_missing, radius_missing, color='black',
@@ -49,22 +53,26 @@ def plot_venn_diagram(group_entries, missing):
 
 if __name__ == '__main__':
     # Read all entities in FamPlex
-    entities_file = os.path.join(bepath, 'entities.csv')
+    entities_file = os.path.join(fplx_path, 'entities.csv')
     entities = load_entity_list(entities_file)
     # Read equivalence table
-    equivalences_file = os.path.join(bepath, 'equivalences.csv')
+    equivalences_file = os.path.join(fplx_path, 'equivalences.csv')
     equivalences = load_equivalences(equivalences_file)
     # Find equivalence DB types for each term
     db_mappings = {entity: find_db_mappings(entity, equivalences)
                    for entity in entities}
 
+    # Get a list of missing mappings
     missing = sorted([entity for entity, db_eq in db_mappings.items()
                       if not db_eq])
 
+    # Print statistics of mappings
     print('Equivalences coverage\n=====================')
     print('Missing: %d (%.0f%%)' % (len(missing),
                                     100.0*len(missing)/len(entities)))
 
+
+    # Plot Venn diagram of mappings
     groups = [['IP', 'PF','NXP', 'GO'], ['NCIT', 'MESH'], ['BEL', 'RE']]
     group_entries, num_missing = get_entries_by_group(db_mappings, groups)
     v3 = plot_venn_diagram(group_entries, num_missing)
