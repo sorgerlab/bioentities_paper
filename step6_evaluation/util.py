@@ -1,3 +1,6 @@
+"""This file contains various utility functions for other scripts to use,
+including loading various tables of FamPlex."""
+
 import csv
 import sys
 from collections import defaultdict
