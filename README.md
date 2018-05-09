@@ -1,6 +1,12 @@
-Methods (so far)
+Scripts to reproduce results reported in FamPlex manuscript
+===========================================================
 
-Step 1: Get Proteins->Genes->PMIDs
+This repository is organized into six folders corresponding to each stage of
+constructing and evaluating the FamPlex resource.
+
+
+Step 1: Get list of genes and corresponding PMIDs
+-------------------------------------------------
 
 - Download Reactome signaling proteins list
   (see step1_genes_pmids/signaling_proteins_readme.txt)
@@ -20,21 +26,24 @@ Step 1: Get Proteins->Genes->PMIDs
   - output: combined_pids.txt
 
 Step 2: Build REACH without FamPlex and read PMIDs
+--------------------------------------------------
 
 - Build REACH, b4a284, without FamPlex
-- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex (scripts not included)
+- Run on EC2, upload JSON files to key PMIDXXXXX/reach_no_famplex
+(scripts not included)
 - output: combined_genes_no_famplex_stmts.pkl (the pickle file contains a dictionary
   mapping each PMID to a list of Statements)
 
 
-Step 3: Shuffle the PMIDs and subsample the data into two files
+Step 3: Shuffle the PMIDs and subsample the data into training and test sets
+----------------------------------------------------------------------------
 - 80% of papers to training set, 20% of papers to test set
 - get_training_test_stmts.py
   - output: training_pmid_stmts.pkl
   - output: test_pmid_stmts.pkl
 
-
 Step 4: stmt_entity_stats
+-------------------------
 - Run get_agents_for_evaluation.py. Creates random sample of agents from
   training (or test) set for evaluation.
   - output: training_agents_sample.csv
@@ -58,6 +67,7 @@ Step 4: stmt_entity_stats
 - Same for test set.
 
 Step 5: Curate grounding map
+----------------------------
   - texts_for_gene.py helps in finding lexical synonyms for unmapped families.
   - Fraction of most frequent agents that in
 clude family or complex
@@ -67,7 +77,7 @@ clude family or complex
   - Table with 3 columns Entity, Frequency, Category (F, C, X, or empty),
     Curator
 
-Measure coverage
-- test_entities_coverage.py:
-  - Creates a plot of frequency of groundings to each entity
-  -
+Step 6: Evaluate FamPlex resource
+---------------------------------
+- Creates a plot of frequency of groundings to each entity
+ 
